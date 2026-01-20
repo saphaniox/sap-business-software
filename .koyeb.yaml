@@ -1,13 +1,13 @@
-# Koyeb Configuration File (Optional)
-# This file can be used instead of manual configuration in the dashboard
-# Place this in the root of your repository if you prefer Infrastructure as Code
+# Koyeb Configuration File
+# This ensures Koyeb builds from the correct directory
+# Commit this file to your repository
 
 services:
   - name: sap-backend
     type: web
     instance_type: free
     regions:
-      - was  # Washington, DC (change to: fra=Frankfurt, par=Paris, sin=Singapore)
+      - fra  # Frankfurt (current deployment)
     ports:
       - port: 9000
         protocol: http
@@ -15,8 +15,8 @@ services:
       - path: /
         port: 9000
     git:
-      branch: main  # or saphaniox
-      workdir: server
+      branch: main
+      workdir: server  # CRITICAL: Build from server directory
       buildCommand: npm install
       runCommand: npm start
     env:
@@ -33,3 +33,4 @@ services:
       - http:
           path: /api/health
           port: 9000
+          grace_period: 30

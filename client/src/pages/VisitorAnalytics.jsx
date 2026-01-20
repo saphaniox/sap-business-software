@@ -36,7 +36,7 @@ const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
 // Remove /api suffix if present in VITE_API_URL to prevent double /api/api/
-const baseUrl = import.meta.env.VITE_API_URL || 'https://encouraging-brianne-sap-tech-0570304b.koyeb.app';
+const baseUrl = import.meta.env.VITE_API_URL || 'https://sap-business-management-software.koyeb.app';
 const API_BASE_URL = baseUrl.replace(/\/api$/, '');
 
 const VisitorAnalytics = () => {

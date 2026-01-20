@@ -7,7 +7,7 @@ import PageHeader from '../components/PageHeader'
 import BackToTop from '../components/BackToTop'
 
 const { Title, Text } = Typography
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://encouraging-brianne-sap-tech-0570304b.koyeb.app').replace('/api', '')
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://sap-business-management-software.koyeb.app').replace('/api', '')
 
 function Profile() {
   const { user, setUser } = useAuthStore()

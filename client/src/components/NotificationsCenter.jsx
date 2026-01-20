@@ -14,7 +14,7 @@ import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
 
 const { Text } = Typography;
-const API_URL = import.meta.env.VITE_API_URL || 'https://encouraging-brianne-sap-tech-0570304b.koyeb.app';
+const API_URL = import.meta.env.VITE_API_URL || 'https://sap-business-management-software.koyeb.app';
 
 /**
  * Notifications Center Component

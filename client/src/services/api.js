@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Production API from Koyeb (Never Sleeps)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://encouraging-brianne-sap-tech-0570304b.koyeb.app'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sap-business-management-software.koyeb.app'
 
 console.log('API Base URL:', API_BASE_URL)
 

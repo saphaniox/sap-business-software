@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Remove /api suffix if present in VITE_API_URL
-const baseUrl = import.meta.env.VITE_API_URL || 'https://encouraging-brianne-sap-tech-0570304b.koyeb.app';
+const baseUrl = import.meta.env.VITE_API_URL || 'https://sap-business-management-software.koyeb.app';
 const API_BASE_URL = baseUrl.replace(/\/api$/, '');
 
 let sessionId = null;

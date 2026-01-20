@@ -19,6 +19,6 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "https://encouraging-brianne-sap-tech-0570304b.koyeb.app"
+    "VITE_API_URL": "https://sap-business-management-software.koyeb.app"
   }
 }

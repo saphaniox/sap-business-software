@@ -51,7 +51,7 @@ const CompanyLogoDisplay = ({
   const fullLogoUrl = logoUrl && !imageError
     ? logoUrl.startsWith('http') 
       ? logoUrl 
-      : `${import.meta.env.VITE_API_URL || 'https://encouraging-brianne-sap-tech-0570304b.koyeb.app'}${logoUrl}`
+      : `${import.meta.env.VITE_API_URL || 'https://sap-business-management-software.koyeb.app'}${logoUrl}`
     : null;
 
   return (

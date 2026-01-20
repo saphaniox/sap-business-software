@@ -24,7 +24,7 @@ import '../styles/auth.css'
 const { Title, Text, Paragraph } = Typography
 const { Option } = Select
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://encouraging-brianne-sap-tech-0570304b.koyeb.app'
+const API_URL = import.meta.env.VITE_API_URL || 'https://sap-business-management-software.koyeb.app'
 
 function CompanyRegister() {
   const navigate = useNavigate()

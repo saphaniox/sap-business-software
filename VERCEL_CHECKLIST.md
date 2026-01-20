@@ -29,11 +29,11 @@
 
 ### **6. Update CORS (Backend)**
 - [ ] Go to Koyeb Dashboard
-- [ ] Open service: `encouraging-brianne-sap-tech-0570304b`
+- [ ] Open service: `sap-business-management-software`
 - [ ] Settings → Environment Variables
 - [ ] Update `ALLOWED_ORIGINS` to include your Vercel URL:
   ```
-  ALLOWED_ORIGINS=https://your-app.vercel.app,http://localhost:5173
+  ALLOWED_ORIGINS=https://sap-business-software.vercel.app,http://localhost:5173,http://localhost:5100
   ```
 - [ ] Save and Redeploy
 
@@ -72,7 +72,7 @@ Value: https://sap-business-management-software.koyeb.app
 
 **Backend CORS (After Deploy):**
 ```
-ALLOWED_ORIGINS=https://your-vercel-app.vercel.app,http://localhost:5173
+ALLOWED_ORIGINS=https://sap-business-software.vercel.app,http://localhost:5173,http://localhost:5100
 ```
 
 ---

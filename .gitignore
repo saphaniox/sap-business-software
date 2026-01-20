@@ -1,7 +1,8 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json - REQUIRED for deployment (keep it committed)
 yarn.lock
+pnpm-lock.yaml
 
 # Environment Variables
 .env

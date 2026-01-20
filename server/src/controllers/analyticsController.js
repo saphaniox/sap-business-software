@@ -49,7 +49,9 @@ export async function trackPageVisit(req, res) {
 
       // Get current page views
       const currentSession = existingSessions[0];
-      const pageViews = currentSession.page_views ? JSON.parse(currentSession.page_views) : [];
+      // In PostgreSQL, JSONB columns are already parsed objects
+      const pageViews = Array.isArray(currentSession.page_views) ? currentSession.page_views : 
+                        (typeof currentSession.page_views === 'string' ? JSON.parse(currentSession.page_views) : []);
       pageViews.push(pageView);
 
       await query(
@@ -60,11 +62,13 @@ export async function trackPageVisit(req, res) {
       // Create new session
       const pageViews = [{ page, timestamp: now, duration: 0 }];
       
-      await query(
-        `INSERT INTO analytics_sessions 
-        (id, session_id, ip_address, user_agent, device_type, browser, os, referrer, page_views, 
-        start_time, is_authenticated, user_id, company_id, total_page_views, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      try {
+        await query(
+          `INSERT INTO analytics_sessions 
+          (id, session_id, ip_address, user_agent, device_type, browser, os, referrer, page_views, 
+          start_time, is_authenticated, user_id, company_id, total_page_views, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT (session_id) DO NOTHING`,
         [
           uuidv4(),
           sessionId,
@@ -84,6 +88,12 @@ export async function trackPageVisit(req, res) {
           now
         ]
       );
+      } catch (insertError) {
+        // Ignore duplicate key errors (race condition)
+        if (insertError.code !== '23505') {
+          throw insertError;
+        }
+      }
     }
 
     res.status(201).json({ success: true, sessionId });

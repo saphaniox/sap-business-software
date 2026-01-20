@@ -41,7 +41,7 @@ export const superAdminLogin = async (req, res) => {
     }
 
     // Find super admin
-    const [superAdmins] = await query(
+    const superAdmins = await query(
       'SELECT * FROM superadmins WHERE email = ?',
       [email]
     );
@@ -83,14 +83,21 @@ export const superAdminLogin = async (req, res) => {
     // Log audit
     await logAudit(superAdmin.id, superAdmin.email, 'login', 'superadmin', superAdmin.id, email, {}, req);
 
+    // Parse permissions if stored as JSON string
+    const permissions = typeof superAdmin.permissions === 'string' 
+      ? JSON.parse(superAdmin.permissions) 
+      : superAdmin.permissions;
+
     res.json({
+      success: true,
       message: 'Login successful',
       token,
-      superAdmin: {
+      admin: {
         id: superAdmin.id,
         email: superAdmin.email,
         name: superAdmin.name,
-        role: 'superadmin'
+        role: 'superadmin',
+        permissions: permissions
       }
     });
 

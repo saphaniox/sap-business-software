@@ -62,7 +62,7 @@ function CompanySettings() {
       
       // Set logo URL if exists
       if (companyData.logo) {
-        setLogoUrl(`https://sap-business-management-system.onrender.com/uploads/company-logos/${companyData.logo}`)
+        setLogoUrl(`https://sap-business-management-software.koyeb.app/uploads/company-logos/${companyData.logo}`)
       }
       
       form.setFieldsValue({
@@ -245,7 +245,7 @@ function CompanySettings() {
                     name="logo"
                     listType="picture"
                     maxCount={1}
-                    action={`https://sap-business-management-system.onrender.com/api/company/logo`}
+                    action={`https://sap-business-management-software.koyeb.app/api/company/logo`}
                     headers={{
                       Authorization: `Bearer ${localStorage.getItem('token')}`
                     }}

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const RENDER_URL = 'https://sap-business-management-system.onrender.com';
+const KOYEB_URL = 'https://sap-business-management-software.koyeb.app';
 
 /**
  * Server Wake-up Service
@@ -44,7 +44,7 @@ class ServerWakeupService {
         const timeout = this.wakeupTimeout * Math.pow(this.backoffMultiplier, Math.min(attempt, 3));
         
         // Send wake-up request with exponentially increasing timeout
-        const response = await axios.get(`${RENDER_URL}/api/wake`, {
+        const response = await axios.get(`${KOYEB_URL}/api/wake`, {
           timeout: timeout
         });
 
@@ -93,7 +93,7 @@ class ServerWakeupService {
    */
   async ping() {
     try {
-      const response = await axios.post(`${RENDER_URL}/api/ping`, {}, {
+      const response = await axios.post(`${KOYEB_URL}/api/ping`, {}, {
         timeout: 5000
       });
       

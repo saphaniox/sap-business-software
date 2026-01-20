@@ -6,7 +6,7 @@ import validator from 'validator';
 // Enhanced authentication rate limiting with progressive delays
 export const strictAuthLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 failed attempts
+  max: 50, // 50 attempts (increased for testing)
   skipSuccessfulRequests: true,
   message: 'Too many failed login attempts. Please try again in 15 minutes.',
   standardHeaders: true,

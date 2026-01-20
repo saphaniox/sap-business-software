@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { getDatabase } from '../db/connection.js';
-import { ObjectId } from 'mongodb';
+import { query } from '../db/connection.js';
 
 /**
  * Authentication middleware for download endpoints
@@ -29,9 +28,11 @@ export async function authenticateDownload(req, res, next) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Fetch fresh user data from database to get current role
-    const db = getDatabase();
-    const usersCollection = db.collection('users');
-    const user = await usersCollection.findOne({ _id: new ObjectId(decoded.id) });
+    const result = await query(
+      'SELECT id, username, role, company_id, status FROM users WHERE id = $1',
+      [decoded.id]
+    );
+    const user = result.rows[0];
     
     if (!user) {
       return res.status(401).json({ error: 'User not found' });
@@ -47,7 +48,7 @@ export async function authenticateDownload(req, res, next) {
     // Use current role from database, not from token
     // CRITICAL: Include company_id for data isolation
     req.user = {
-      id: user._id,
+      id: user.id,
       username: user.username,
       role: user.role,
       company_id: user.company_id,

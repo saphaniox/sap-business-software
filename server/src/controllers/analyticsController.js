@@ -31,6 +31,12 @@ export async function trackPageVisit(req, res) {
       [sessionId]
     );
 
+    // Handle case where query returns undefined/null
+    if (!existingSessions) {
+      console.error('Analytics query returned undefined - database may not be initialized');
+      return res.status(201).json({ success: true, sessionId, warning: 'Analytics tracking unavailable' });
+    }
+
     const now = new Date();
 
     if (existingSessions.length > 0) {

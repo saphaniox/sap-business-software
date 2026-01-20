@@ -152,8 +152,9 @@ app.use(cors({
     }
     
     // In production, check against allowed origins
-    // Allow Vercel preview deployments (pattern: https://sap-business-management-system-*.vercel.app)
-    const isVercelPreview = /^https:\/\/sap-business-management-system.*\.vercel\.app$/.test(origin);
+    // Allow Vercel preview deployments (both production and preview URLs)
+    const isVercelPreview = /^https:\/\/sap-business-software.*\.vercel\.app$/.test(origin) ||
+                           /^https:\/\/sap-business-management-system.*\.vercel\.app$/.test(origin);
     const isAllowedOrigin = allowedOrigins.some(allowedOrigin => origin.startsWith(allowedOrigin));
     
     if (isAllowedOrigin || isVercelPreview) {

@@ -11,7 +11,7 @@ import axios from 'axios'
 
 const { Text } = Typography
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:9000'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://encouraging-brianne-sap-tech-0570304b.koyeb.app'
 
 function Debug() {
   const { user } = useAuthStore()

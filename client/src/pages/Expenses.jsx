@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/authStore'
 import dayjs from 'dayjs'
 import { useAutoDismissAlert } from '../hooks/useAutoDismissAlert'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://encouraging-brianne-sap-tech-0570304b.koyeb.app'
 
 function Expenses() {
   const { user } = useAuthStore()

@@ -1,0 +1,63 @@
+{
+  "name": "sap-business-management-client",
+  "version": "2.0.0",
+  "description": "SAP Business Management Software - Multi-tenant Frontend",
+  "type": "module",
+  "scripts": {
+    "dev": "node ./node_modules/vite/bin/vite.js",
+    "build": "node ./node_modules/vite/bin/vite.js build",
+    "preview": "node ./node_modules/vite/bin/vite.js preview",
+    "lint": "node ./node_modules/eslint/bin/eslint.js src --ext js,jsx"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.2.6",
+    "antd": "^5.11.2",
+    "axios": "^1.6.2",
+    "chart.js": "^4.5.1",
+    "cookie-parser": "^1.4.7",
+    "csurf": "^1.11.0",
+    "date-fns": "^2.30.0",
+    "express-slow-down": "^3.0.1",
+    "file-saver": "^2.0.5",
+    "framer-motion": "^12.26.2",
+    "hpp": "^0.2.3",
+    "html2canvas": "^1.4.1",
+    "html5-qrcode": "^2.3.8",
+    "jsbarcode": "^3.12.3",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^5.0.7",
+    "nodemailer": "^7.0.12",
+    "papaparse": "^5.5.3",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.3.1",
+    "react-countup": "^6.5.3",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0",
+    "recharts": "^3.5.1",
+    "validator": "^13.15.26",
+    "xlsx": "^0.18.5",
+    "xss-clean": "^0.1.4",
+    "zustand": "^4.4.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react": "^7.33.2",
+    "terser": "^5.44.1",
+    "vite": "^5.0.8"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all",
+      "iOS >= 12",
+      "Safari >= 12"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

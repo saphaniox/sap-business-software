@@ -1,0 +1,28 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "testuser",
+      "email": "test@shop.com",
+      "password_hash": "$2a$10$B5u9c9v/ROGka6u/FTQ5Y.7rSwEntSlzCTAJmsUWpKKL.e1po1vIK",
+      "role": "admin",
+      "shop_name": "My Electronics Shop",
+      "created_at": "2025-12-05T17:25:25.712Z"
+    }
+  ],
+  "products": [],
+  "customers": [],
+  "sales_orders": [],
+  "order_items": [],
+  "invoices": [],
+  "stock_transactions": [],
+  "_counter": {
+    "users": 2,
+    "products": 1,
+    "customers": 1,
+    "sales_orders": 1,
+    "order_items": 1,
+    "invoices": 1,
+    "stock_transactions": 1
+  }
+}

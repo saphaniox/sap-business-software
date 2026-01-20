@@ -1,0 +1,101 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Build outputs
+dist/
+build/
+coverage/
+*.tsbuildinfo
+out/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Database
+data/database.json
+*.db
+*.sqlite
+*.sqlite3
+mongodb.log
+
+# Uploads & Media
+uploads/
+*.jpg
+*.jpeg
+*.png
+*.gif
+.tmp/
+
+# Backups
+backups/
+*.bak
+*.backup
+*.zip
+*.tar.gz
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+desktop.ini
+
+# Testing
+.nyc_output/
+jest.config.js.map
+
+# Security
+.env.production
+credentials.json
+keys/
+
+# AWS
+.aws/credentials
+.aws/config
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS specific
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Keep these important files
+!.github/
+!.gitkeep
+!.env.example
+!server/.env.example
+!client/.env.example
+!client/src/assets/logo.png

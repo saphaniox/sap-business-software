@@ -1,0 +1,49 @@
+{
+  "name": "sap-business-management-server",
+  "version": "2.0.0",
+  "description": "SAP Business Management Software - Multi-tenant Backend",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "build": "echo 'Backend built for AWS Amplify'",
+    "seed": "node src/db/seed.js",
+    "seed-production": "node scripts/seed-production-data.js",
+    "seed-superadmin": "node scripts/seed-superadmin.js",
+    "seed-two-businesses": "node scripts/seed-two-businesses.js",
+    "seed-diverse": "node scripts/seed-diverse-businesses.js",
+    "test-connection": "node scripts/test-connection.js",
+    "migrate": "node scripts/migrate-to-mysql.js",
+    "deploy": "serverless deploy",
+    "deploy:dev": "serverless deploy --stage dev",
+    "deploy:prod": "serverless deploy --stage production",
+    "offline": "serverless offline"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "aws-serverless-express": "^3.4.0",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.2.1",
+    "express-slow-down": "^3.0.1",
+    "express-validator": "^7.0.1",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
+    "jsonwebtoken": "^9.0.0",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.12",
+    "pdfkit": "^0.13.0",
+    "pg": "^8.17.1",
+    "serverless-http": "^3.2.0",
+    "uuid": "^9.0.1",
+    "validator": "^13.15.26"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11",
+    "serverless": "^3.38.0",
+    "serverless-offline": "^13.3.0"
+  }
+}

@@ -1,0 +1,59 @@
+service: sap-business-management
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'production'}
+  memorySize: 512
+  timeout: 30
+  environment:
+    NODE_ENV: production
+    DATABASE_URL: ${env:DATABASE_URL}
+    JWT_SECRET: ${env:JWT_SECRET}
+    ALLOWED_ORIGINS: ${env:ALLOWED_ORIGINS}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: '*'
+
+functions:
+  api:
+    handler: lambda.handler
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
+      - httpApi:
+          path: /
+          method: ANY
+    reservedConcurrency: 10
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 9000
+    noPrependStageInUrl: true
+
+package:
+  exclude:
+    - node_modules/**
+    - .git/**
+    - .vscode/**
+    - tests/**
+    - '*.md'
+    - scripts/**
+    - backups/**
+  include:
+    - src/**
+    - package.json
+    - lambda.js

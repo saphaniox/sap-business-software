@@ -1,0 +1,35 @@
+# Koyeb Configuration File (Optional)
+# This file can be used instead of manual configuration in the dashboard
+# Place this in the root of your repository if you prefer Infrastructure as Code
+
+services:
+  - name: sap-backend
+    type: web
+    instance_type: free
+    regions:
+      - was  # Washington, DC (change to: fra=Frankfurt, par=Paris, sin=Singapore)
+    ports:
+      - port: 9000
+        protocol: http
+    routes:
+      - path: /
+        port: 9000
+    git:
+      branch: main  # or saphaniox
+      workdir: server
+      buildCommand: npm install
+      runCommand: npm start
+    env:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "9000"
+      # Add other environment variables via Koyeb dashboard for security
+      # Don't commit secrets to GitHub!
+    scalings:
+      min: 1
+      max: 1
+    health_checks:
+      - http:
+          path: /api/health
+          port: 9000

@@ -26,7 +26,7 @@ export async function trackPageVisit(req, res) {
                       'unknown';
 
     // Find existing session
-    const [existingSessions] = await query(
+    const existingSessions = await query(
       'SELECT * FROM analytics_sessions WHERE session_id = ?',
       [sessionId]
     );
@@ -93,7 +93,7 @@ export async function updateSession(req, res) {
     const { sessionId } = req.params;
     const { finalPageDuration, endTime } = req.body;
 
-    const [sessions] = await query(
+    const sessions = await query(
       'SELECT * FROM analytics_sessions WHERE session_id = ?',
       [sessionId]
     );
@@ -123,16 +123,16 @@ export async function updateSession(req, res) {
 export async function getAnalyticsOverview(req, res) {
   try {
     // Get total visitors (unique sessions)
-    const [totalResult] = await query('SELECT COUNT(*) as count FROM analytics_sessions');
+    const totalResult = await query('SELECT COUNT(*) as count FROM analytics_sessions');
     const totalVisitors = totalResult[0].count;
     const totalSessions = totalVisitors;
     
     // Get total page views
-    const [pageViewsResult] = await query('SELECT SUM(total_page_views) as total FROM analytics_sessions');
+    const pageViewsResult = await query('SELECT SUM(total_page_views) as total FROM analytics_sessions');
     const totalPageViews = pageViewsResult[0].total || 0;
     
     // Calculate average duration
-    const [avgResult] = await query(
+    const avgResult = await query(
       'SELECT AVG(duration) as avg FROM analytics_sessions WHERE duration > 0'
     );
     const averageDuration = Math.floor(avgResult[0].avg || 0);
@@ -141,14 +141,14 @@ export async function getAnalyticsOverview(req, res) {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     
-    const [todayResult] = await query(
+    const todayResult = await query(
       'SELECT COUNT(*) as count FROM analytics_sessions WHERE start_time >= ?',
       [todayStart]
     );
     const todayVisitors = todayResult[0].count;
     
     // Get today's page views
-    const [todayPageViewsResult] = await query(
+    const todayPageViewsResult = await query(
       'SELECT SUM(total_page_views) as total FROM analytics_sessions WHERE start_time >= ?',
       [todayStart]
     );
@@ -175,12 +175,12 @@ export async function getRecentVisitors(req, res) {
     const limit = parseInt(req.query.limit) || 50;
     const offset = (page - 1) * limit;
 
-    const [visitors] = await query(
+    const visitors = await query(
       'SELECT * FROM analytics_sessions ORDER BY start_time DESC LIMIT ? OFFSET ?',
       [limit, offset]
     );
 
-    const [totalResult] = await query('SELECT COUNT(*) as count FROM analytics_sessions');
+    const totalResult = await query('SELECT COUNT(*) as count FROM analytics_sessions');
     const total = totalResult[0].count;
 
     res.json({
@@ -200,7 +200,7 @@ export async function getRecentVisitors(req, res) {
 export async function getPopularPages(req, res) {
   try {
     // Get all sessions with page views
-    const [sessions] = await query('SELECT page_views FROM analytics_sessions WHERE page_views IS NOT NULL');
+    const sessions = await query('SELECT page_views FROM analytics_sessions WHERE page_views IS NOT NULL');
     
     const pageCounts = {};
     sessions.forEach(session => {
@@ -230,7 +230,7 @@ export async function getPopularPages(req, res) {
 export async function getDeviceStats(req, res) {
   try {
     // Get device types
-    const [deviceTypes] = await query(
+    const deviceTypes = await query(
       `SELECT device_type as _id, COUNT(*) as count 
        FROM analytics_sessions 
        WHERE device_type IS NOT NULL 
@@ -239,7 +239,7 @@ export async function getDeviceStats(req, res) {
     );
 
     // Get browsers
-    const [browsers] = await query(
+    const browsers = await query(
       `SELECT browser as _id, COUNT(*) as count 
        FROM analytics_sessions 
        WHERE browser IS NOT NULL 
@@ -248,7 +248,7 @@ export async function getDeviceStats(req, res) {
     );
 
     // Get operating systems
-    const [os] = await query(
+    const os = await query(
       `SELECT os as _id, COUNT(*) as count 
        FROM analytics_sessions 
        WHERE os IS NOT NULL 
@@ -257,7 +257,7 @@ export async function getDeviceStats(req, res) {
     );
 
     // Get total for percentage calculation
-    const [totalResult] = await query('SELECT COUNT(*) as count FROM analytics_sessions');
+    const totalResult = await query('SELECT COUNT(*) as count FROM analytics_sessions');
     const total = totalResult[0].count;
     
     const calculatePercentage = (items) => {

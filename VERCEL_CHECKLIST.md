@@ -20,7 +20,7 @@
 
 ### **4. Environment Variables**
 - [ ] Click "Environment Variables"
-- [ ] Add: `VITE_API_URL` = `https://encouraging-brianne-sap-tech-0570304b.koyeb.app`
+- [ ] Add: `VITE_API_URL` = `https://sap-business-management-software.koyeb.app`
 
 ### **5. Deploy**
 - [ ] Click "Deploy"
@@ -49,7 +49,7 @@
 
 ```
 Frontend:  https://your-app.vercel.app ✅
-Backend:   https://encouraging-brianne-sap-tech-0570304b.koyeb.app ✅
+Backend:   https://sap-business-management-software.koyeb.app ✅
 Database:  Supabase (8GB) ✅
 
 TOTAL COST: $0/month 🎉
@@ -67,7 +67,7 @@ client  ← MUST BE SET!
 **Environment Variable:**
 ```
 Name:  VITE_API_URL
-Value: https://encouraging-brianne-sap-tech-0570304b.koyeb.app
+Value: https://sap-business-management-software.koyeb.app
 ```
 
 **Backend CORS (After Deploy):**

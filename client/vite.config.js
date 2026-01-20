@@ -29,11 +29,15 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             'react-vendor': ['react', 'react-dom', 'react-router-dom'],
             'antd-vendor': ['antd', '@ant-design/icons'],
-            'chart-vendor': ['chart.js', 'react-chartjs-2', 'recharts']
+            'chart-vendor': ['chart.js', 'react-chartjs-2'],
+            'xlsx': ['xlsx'],
+            'html2canvas': ['html2canvas'],
+            'jspdf-vendor': ['jspdf', 'jspdf-autotable'],
+            'utils-vendor': ['axios', 'date-fns', 'validator']
           }
         }
       },
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 1500, // Increase warning limit to 1.5MB
       cssCodeSplit: true
     },
     optimizeDeps: {

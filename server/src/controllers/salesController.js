@@ -38,9 +38,9 @@ export async function createSalesOrder(req, res) {
         // Auto-register new customer
         const customerId = uuidv4();
         await query(
-          `INSERT INTO customers (id, company_id, name, phone, email, address, total_purchases, total_spent, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-          [customerId, companyId, customer_name, customer_phone, '', '', 0, 0]
+          `INSERT INTO customers (id, company_id, name, phone, email, address, total_purchases)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [customerId, companyId, customer_name, customer_phone, '', '', 0]
         );
       }
     }
@@ -125,8 +125,8 @@ export async function createSalesOrder(req, res) {
     const saleNumber = `SALE-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     
     await query(
-      `INSERT INTO sales (id, company_id, customer_name, sale_number, items, subtotal, total, status, created_by, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      `INSERT INTO sales (id, company_id, customer_name, sale_number, items, subtotal, total, status, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [orderId, companyId, customer_name, saleNumber, JSON.stringify(orderItems), totalAmount, totalAmount, 'completed', req.user.id]
     );
 

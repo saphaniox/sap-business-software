@@ -24,9 +24,9 @@ export const createExpense = async (req, res) => {
     const expenseDate = date ? new Date(date) : new Date();
     
     await query(
-      `INSERT INTO expenses (id, company_id, amount, description, category, date, user_id, username, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-      [expenseId, companyId, parseFloat(amount), description.trim(), category?.trim() || null, expenseDate, userId, req.user?.username || 'Unknown']
+      `INSERT INTO expenses (id, company_id, amount, description, category, expense_date, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [expenseId, companyId, parseFloat(amount), description.trim(), category?.trim() || null, expenseDate, userId]
     );
 
     const result = await query(

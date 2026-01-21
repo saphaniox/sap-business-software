@@ -61,10 +61,10 @@ export async function createReturn(req, res) {
 
     // Create return record
     const returnId = uuidv4();
-    await query(
-      `INSERT INTO returns (id, company_id, order_id, customer_name, customer_phone, items, total_refund_amount, currency, reason, refund_method, status, created_by_user_id, created_by_username, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-      [returnId, companyId, order_id, order.customer_name, order.customer_phone, JSON.stringify(returnItems), refundAmount, order.currency || 'UGX', reason, refund_method, 'pending', req.user.id, req.user.username]
+    const returnNumber = `RET-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;\n    \n    await query(
+      `INSERT INTO returns (id, company_id, sale_id, customer_name, return_number, items, total, reason, refund_method, status, created_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [returnId, companyId, order_id, order.customer_name, returnNumber, JSON.stringify(returnItems), refundAmount, reason, refund_method, 'pending', req.user.id]
     );
 
     res.status(201).json({

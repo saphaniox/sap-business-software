@@ -53,8 +53,8 @@ export async function createProduct(req, res) {
     const productId = uuidv4();
     await query(
       `INSERT INTO products 
-       (id, company_id, created_by, name, sku, description, selling_price, cost_price, quantity, reorder_level, created_at, updated_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+       (id, company_id, created_by, name, sku, description, selling_price, cost_price, quantity, reorder_level) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [productId, companyId, userId, name, sku, description || '', sellingPrice, costPrice, productQuantity, stockThreshold]
     );
 

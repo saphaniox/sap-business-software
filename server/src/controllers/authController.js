@@ -61,8 +61,8 @@ export async function register(req, res) {
     const userId = uuidv4();
     
     await query(
-      `INSERT INTO users (id, company_id, name, email, password, role, status, created_at, updated_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      `INSERT INTO users (id, company_id, name, email, password, role, status) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [userId, company_id, username, email, hashedPassword, 'sales', 'active']
     );
 

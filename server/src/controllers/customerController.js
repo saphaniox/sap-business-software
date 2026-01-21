@@ -19,8 +19,8 @@ export async function createCustomer(req, res) {
     const customerId = uuidv4();
     await query(
       `INSERT INTO customers 
-       (id, company_id, name, phone, email, address, total_purchases, total_spent, created_at, updated_at) 
-       VALUES (?, ?, ?, ?, ?, ?, 0, 0, NOW(), NOW())`,
+       (id, company_id, name, phone, email, address, total_purchases) 
+       VALUES (?, ?, ?, ?, ?, ?, 0)`,
       [customerId, companyId, name, phone, email || '', address || '']
     );
 

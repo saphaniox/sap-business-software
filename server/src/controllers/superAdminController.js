@@ -257,7 +257,7 @@ export const getPendingCompanies = async (req, res) => {
       industry_features: company.industry_features && typeof company.industry_features === 'string' ? JSON.parse(company.industry_features) : company.industry_features
     }));
 
-    res.json({ companies: parsedCompanies });
+    res.json({ success: true, companies: parsedCompanies });
 
   } catch (error) {
     console.error('Get pending companies error:', error);
@@ -362,6 +362,7 @@ export const getAllUsersAcrossBusinesses = async (req, res) => {
     const total = totalResult[0].count;
 
     res.json({
+      success: true,
       users,
       pagination: {
         page,
@@ -412,6 +413,7 @@ export const getAllCompanies = async (req, res) => {
     const total = totalResult[0].count;
 
     res.json({
+      success: true,
       companies,
       pagination: {
         page: parseInt(page),
@@ -682,6 +684,7 @@ export const getPlatformStatistics = async (req, res) => {
     );
 
     res.json({
+      success: true,
       statistics: {
         totalCompanies: totalCompanies[0].count,
         approvedCompanies: approvedCompanies[0].count,

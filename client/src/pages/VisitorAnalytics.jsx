@@ -73,8 +73,8 @@ const VisitorAnalytics = () => {
       const [overviewRes, visitorsRes, pagesRes, devicesRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/api/analytics/overview`, config),
         axios.get(`${API_BASE_URL}/api/analytics/visitors?page=1&limit=50`, config),
-        axios.get(`${API_BASE_URL}/api/analytics/popular-pages`, config),
-        axios.get(`${API_BASE_URL}/api/analytics/device-stats`, config)
+        axios.get(`${API_BASE_URL}/api/analytics/pages`, config),
+        axios.get(`${API_BASE_URL}/api/analytics/devices`, config)
       ]);
 
       setOverview(overviewRes.data);
@@ -84,7 +84,11 @@ const VisitorAnalytics = () => {
       setDeviceStats(devicesRes.data);
     } catch (error) {
       console.error('Error fetching analytics:', error);
-      message.error('Failed to load analytics data');
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        message.error('Authentication failed. Please login again.');
+      } else {
+        message.error('Failed to load analytics data');
+      }
     } finally {
       setLoading(false);
     }

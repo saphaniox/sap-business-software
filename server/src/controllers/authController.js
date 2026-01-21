@@ -141,6 +141,15 @@ export async function login(req, res) {
         [username, username]
       );
     }
+    
+    // Ensure userResult is an array
+    if (!Array.isArray(userResult)) {
+      console.error('Query did not return an array:', userResult);
+      return res.status(500).json({ 
+        error: 'Database query error. Please try again.' 
+      });
+    }
+    
     const user = userResult[0];
 
     if (!user) {

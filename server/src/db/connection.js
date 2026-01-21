@@ -64,7 +64,9 @@ async function queryWrapper(sql, params = []) {
     const pgSql = sql.replace(/\?/g, () => `$${paramIndex++}`);
     
     const result = await pool.query(pgSql, params);
-    return result.rows;
+    
+    // Always return an array, even if empty
+    return Array.isArray(result.rows) ? result.rows : [];
   } catch (error) {
     console.error('Query error:', error.message);
     console.error('SQL:', sql);

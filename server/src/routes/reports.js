@@ -10,7 +10,7 @@ router.get('/sales-summary', authenticate, async (req, res) => {
     const companyId = req.user.company_id;
     const { query } = getDatabase();
 
-    const [result] = await query(
+    const results = await query(
       `SELECT 
         COUNT(*) as total_orders,
         COALESCE(SUM(total_amount), 0) as total_sales,
@@ -19,6 +19,7 @@ router.get('/sales-summary', authenticate, async (req, res) => {
       WHERE company_id = ? AND status IN ('pending', 'completed')`,
       [companyId]
     );
+    const result = results[0] || {};
 
     res.json({
       total_orders: result.total_orders || 0,
@@ -37,7 +38,7 @@ router.get('/stock-status', authenticate, async (req, res) => {
     const companyId = req.user.company_id;
     const { query } = getDatabase();
 
-    const [result] = await query(
+    const results = await query(
       `SELECT 
         COUNT(*) as total_products,
         COALESCE(SUM(quantity_in_stock), 0) as total_items,
@@ -46,6 +47,7 @@ router.get('/stock-status', authenticate, async (req, res) => {
       WHERE company_id = ?`,
       [companyId]
     );
+    const result = results[0] || {};
 
     res.json({
       total_products: result.total_products || 0,
@@ -69,17 +71,14 @@ router.get('/top-products', authenticate, async (req, res) => {
         p.id as _id,
         p.name as product_name,
         COUNT(DISTINCT s.id) as order_count,
-        COALESCE(SUM(JSON_EXTRACT(s.items, CONCAT('$[', idx, '].quantity'))), 0) as total_quantity,
-        COALESCE(SUM(JSON_EXTRACT(s.items, CONCAT('$[', idx, '].item_total'))), 0) as total_revenue
+        COALESCE(SUM((item->>'quantity')::numeric), 0) as total_quantity,
+        COALESCE(SUM((item->>'item_total')::numeric), 0) as total_revenue
       FROM products p
       JOIN sales s ON s.company_id = p.company_id
-      CROSS JOIN (
-        SELECT 0 as idx UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
-        UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9
-      ) AS indices
+      CROSS JOIN LATERAL jsonb_array_elements(s.items) AS item
       WHERE p.company_id = ? 
         AND s.status = 'completed'
-        AND JSON_EXTRACT(s.items, CONCAT('$[', idx, '].product_id')) = p.id
+        AND (item->>'product_id') = p.id::text
       GROUP BY p.id, p.name
       ORDER BY total_quantity DESC
       LIMIT 10`,
@@ -142,7 +141,7 @@ router.get('/sales-trend', authenticate, async (req, res) => {
         COUNT(*) as orders
       FROM sales
       WHERE company_id = ? 
-        AND order_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        AND order_date >= NOW() - INTERVAL '7 days'
       GROUP BY DATE(order_date)
       ORDER BY _id ASC`,
       [companyId]
@@ -163,18 +162,19 @@ router.get('/analytics/daily', authenticate, async (req, res) => {
     const EXCHANGE_RATE = 3700;
 
     // Get today's sales data
-    const [salesData] = await query(
+    const salesDataResults = await query(
       `SELECT 
         currency,
         COALESCE(SUM(total_amount), 0) as total_revenue,
         COUNT(*) as total_orders
       FROM sales
       WHERE company_id = ? 
-        AND DATE(order_date) = CURDATE()
+        AND DATE(order_date) = CURRENT_DATE
         AND status = 'completed'
       GROUP BY currency`,
       [companyId]
     );
+    const salesData = salesDataResults[0];
 
     // Calculate totals for both currencies
     let totalRevenueUGX = 0;
@@ -188,7 +188,7 @@ router.get('/analytics/daily', authenticate, async (req, res) => {
         COUNT(*) as total_orders
       FROM sales
       WHERE company_id = ? 
-        AND DATE(order_date) = CURDATE()
+        AND DATE(order_date) = CURRENT_DATE
         AND status = 'completed'
       GROUP BY currency`,
       [companyId]
@@ -206,27 +206,30 @@ router.get('/analytics/daily', authenticate, async (req, res) => {
     });
 
     // Get today's gross profit (simplified - from items array)
-    const [profitData] = await query(
+    const profitResults = await query(
       `SELECT 
-        COALESCE(SUM(JSON_EXTRACT(items, '$[*].item_profit')), 0) as gross_profit
-      FROM sales
-      WHERE company_id = ? 
-        AND DATE(order_date) = CURDATE()
-        AND status = 'completed'`,
+        COALESCE(SUM((item->>'item_profit')::numeric), 0) as gross_profit
+      FROM sales s
+      CROSS JOIN LATERAL jsonb_array_elements(s.items) AS item
+      WHERE s.company_id = ? 
+        AND DATE(s.order_date) = CURRENT_DATE
+        AND s.status = 'completed'`,
       [companyId]
     );
+    const profitData = profitResults[0];
 
     const grossProfit = profitData?.gross_profit || 0;
 
     // Get today's expenses
-    const [expensesData] = await query(
+    const expensesResults = await query(
       `SELECT 
         COALESCE(SUM(amount), 0) as total_expenses
       FROM expenses
       WHERE company_id = ? 
-        AND DATE(date) = CURDATE()`,
+        AND DATE(date) = CURRENT_DATE`,
       [companyId]
     );
+    const expensesData = expensesResults[0];
 
     const totalExpenses = expensesData?.total_expenses || 0;
     const netProfit = grossProfit - totalExpenses;
@@ -264,47 +267,47 @@ router.get('/analytics/period', authenticate, async (req, res) => {
 
     switch (period) {
       case 'today':
-        dateCondition = 'DATE(order_date) = CURDATE()';
+        dateCondition = 'DATE(order_date) = CURRENT_DATE';
         groupFormat = '%Y-%m-%d %H:00';
         periodLabel = 'Today (Hourly)';
         break;
       case 'yesterday':
-        dateCondition = 'DATE(order_date) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)';
+        dateCondition = 'DATE(order_date) = CURRENT_DATE - INTERVAL '1 days'';
         groupFormat = '%Y-%m-%d %H:00';
         periodLabel = 'Yesterday (Hourly)';
         break;
       case 'week':
-        dateCondition = 'order_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
+        dateCondition = 'order_date >= NOW() - INTERVAL '7 days'';
         groupFormat = '%Y-%m-%d';
         periodLabel = 'Last 7 Days';
         break;
       case '2weeks':
-        dateCondition = 'order_date >= DATE_SUB(NOW(), INTERVAL 14 DAY)';
+        dateCondition = 'order_date >= NOW() - INTERVAL '14 days'';
         groupFormat = '%Y-%m-%d';
         periodLabel = 'Last 14 Days';
         break;
       case 'month':
-        dateCondition = 'order_date >= DATE_SUB(NOW(), INTERVAL 1 MONTH)';
+        dateCondition = 'order_date >= NOW() - INTERVAL '1 months'';
         groupFormat = '%Y-%m-%d';
         periodLabel = 'Last 30 Days';
         break;
       case '3months':
-        dateCondition = 'order_date >= DATE_SUB(NOW(), INTERVAL 3 MONTH)';
+        dateCondition = 'order_date >= NOW() - INTERVAL '3 months'';
         groupFormat = '%Y-%U';
         periodLabel = 'Last 3 Months (Weekly)';
         break;
       case '6months':
-        dateCondition = 'order_date >= DATE_SUB(NOW(), INTERVAL 6 MONTH)';
+        dateCondition = 'order_date >= NOW() - INTERVAL '6 months'';
         groupFormat = '%Y-%U';
         periodLabel = 'Last 6 Months (Weekly)';
         break;
       case 'year':
-        dateCondition = 'order_date >= DATE_SUB(NOW(), INTERVAL 1 YEAR)';
+        dateCondition = 'order_date >= NOW() - INTERVAL '1 year'';
         groupFormat = '%Y-%m';
         periodLabel = 'Last 12 Months (Monthly)';
         break;
       default:
-        dateCondition = 'order_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
+        dateCondition = 'order_date >= NOW() - INTERVAL '7 days'';
     }
 
     // Get breakdown data
@@ -384,19 +387,19 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
     let dateCondition = '1=1';
     switch(period) {
       case 'today':
-        dateCondition = 'DATE(s.order_date) = CURDATE()';
+        dateCondition = 'DATE(s.order_date) = CURRENT_DATE';
         break;
       case 'week':
-        dateCondition = 's.order_date >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
+        dateCondition = 's.order_date >= NOW() - INTERVAL '7 days'';
         break;
       case 'month':
-        dateCondition = 's.order_date >= DATE_SUB(NOW(), INTERVAL 1 MONTH)';
+        dateCondition = 's.order_date >= NOW() - INTERVAL '1 months'';
         break;
       case 'quarter':
-        dateCondition = 's.order_date >= DATE_SUB(NOW(), INTERVAL 3 MONTH)';
+        dateCondition = 's.order_date >= NOW() - INTERVAL '3 months'';
         break;
       case 'year':
-        dateCondition = 's.order_date >= DATE_SUB(NOW(), INTERVAL 1 YEAR)';
+        dateCondition = 's.order_date >= NOW() - INTERVAL '1 year'';
         break;
     }
 
@@ -456,13 +459,13 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
 
     // Get expenses for the period
     let expenseDateCondition = '1=1';
-    if (period === 'today') expenseDateCondition = 'DATE(date) = CURDATE()';
-    else if (period === 'week') expenseDateCondition = 'date >= DATE_SUB(NOW(), INTERVAL 7 DAY)';
-    else if (period === 'month') expenseDateCondition = 'date >= DATE_SUB(NOW(), INTERVAL 1 MONTH)';
-    else if (period === 'quarter') expenseDateCondition = 'date >= DATE_SUB(NOW(), INTERVAL 3 MONTH)';
-    else if (period === 'year') expenseDateCondition = 'date >= DATE_SUB(NOW(), INTERVAL 1 YEAR)';
+    if (period === 'today') expenseDateCondition = 'DATE(date) = CURRENT_DATE';
+    else if (period === 'week') expenseDateCondition = 'date >= NOW() - INTERVAL '7 days'';
+    else if (period === 'month') expenseDateCondition = 'date >= NOW() - INTERVAL '1 months'';
+    else if (period === 'quarter') expenseDateCondition = 'date >= NOW() - INTERVAL '3 months'';
+    else if (period === 'year') expenseDateCondition = 'date >= NOW() - INTERVAL '1 year'';
 
-    const [expensesData] = await query(
+    const expensesResults = await query(
       `SELECT 
         COALESCE(SUM(amount), 0) as total_expenses,
         COUNT(*) as count
@@ -471,6 +474,7 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
         AND ${expenseDateCondition}`,
       [companyId]
     );
+    const expensesData = expensesResults[0] || {};
 
     const totalExpenses = expensesData?.total_expenses || 0;
     const expensesCount = expensesData?.count || 0;
@@ -542,7 +546,7 @@ router.get('/profit-weekly-breakdown', authenticate, async (req, res) => {
         COUNT(DISTINCT s.id) as order_count
       FROM sales s
       WHERE s.company_id = ? 
-        AND s.order_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        AND s.order_date >= CURRENT_DATE - INTERVAL '7 days'
         AND s.status IN ('pending', 'completed')
       GROUP BY DATE(s.order_date)
       ORDER BY date DESC`,
@@ -556,7 +560,7 @@ router.get('/profit-weekly-breakdown', authenticate, async (req, res) => {
         COALESCE(SUM(amount), 0) as expenses
       FROM expenses
       WHERE company_id = ? 
-        AND date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        AND date >= CURRENT_DATE - INTERVAL '7 days'
       GROUP BY DATE(date)`,
       [companyId]
     );
@@ -644,7 +648,7 @@ router.get('/products/demand', authenticate, async (req, res) => {
       FROM products p
       LEFT JOIN sales s ON s.company_id = p.company_id
         AND s.status = 'completed'
-        AND s.order_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        AND s.order_date >= NOW() - INTERVAL '30 days'
       WHERE p.company_id = ?
       GROUP BY p.id, p.name, p.quantity_in_stock
       ORDER BY times_sold DESC
@@ -660,3 +664,5 @@ router.get('/products/demand', authenticate, async (req, res) => {
 });
 
 export default router;
+
+

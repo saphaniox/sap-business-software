@@ -1,8 +1,20 @@
 // Service Worker for SAP Business Management Software
-const CACHE_VERSION = 'v2-2026-01-21';
+// Auto-clear cache on every version change
+const CACHE_VERSION = 'v3-' + new Date().toISOString().split('T')[0] + '-' + Date.now();
 const CACHE_NAME = `sap-bms-${CACHE_VERSION}`;
 
-// Assets to cache immediately
+// Clear all old caches immediately
+const clearAllCaches = async () => {
+  const cacheNames = await caches.keys();
+  await Promise.all(
+    cacheNames.map(cacheName => {
+      console.log('Service Worker: Clearing cache:', cacheName);
+      return caches.delete(cacheName);
+    })
+  );
+};
+
+// Assets to cache immediately (minimal for fresh content)
 const STATIC_ASSETS = [
   '/',
   '/index.html'
@@ -10,120 +22,130 @@ const STATIC_ASSETS = [
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
+  console.log('Service Worker: Installing new version...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    clearAllCaches() // Clear all old caches first
+      .then(() => caches.open(CACHE_NAME))
       .then(cache => {
         console.log('Service Worker: Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       })
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log('Service Worker: Skipping waiting to activate immediately');
+        return self.skipWaiting();
+      })
   );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up ALL old caches aggressively
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
+  console.log('Service Worker: Activating new version...');
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames
-          .filter(name => name.startsWith('sap-bms-') && name !== CACHE_NAME)
-          .map(name => {
-            console.log('Service Worker: Deleting old cache:', name);
-            return caches.delete(name);
-          })
-      );
-    }).then(() => self.clients.claim())
-  );
-});
-
-// Fetch event - network first, fallback to cache
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
-  
-  // Skip unsupported schemes (chrome-extension, chrome, about, etc.)
-  if (!url.protocol.startsWith('http')) {
-    return;
-  }
-  
-  // Skip caching for API requests - always fetch fresh
-  if (request.url.includes('/api/')) {
-    event.respondWith(
-      fetch(request).catch(() => {
-        return new Response(
-          JSON.stringify({ error: 'Network error, please check your connection' }),
-          { 
-            status: 503,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
+    clearAllCaches()
+      .then(() => {
+        console.log('Service Worker: All caches cleared, claiming clients');
+        return self.clients.claim();
       })
-    );
-    return;
-  }
-
-  // Skip caching for POST, PUT, DELETE requests (only GET requests can be cached)
-  if (request.method !== 'GET') {
-    event.respondWith(fetch(request));
-    return;
-  }
-  
-  // For static assets: network first, fallback to cache
-  event.respondWith(
-    fetch(request)
-      .then(response => {
-        // Only cache successful responses from http/https
-        if (response.status === 200 && url.protocol.startsWith('http')) {
-          // Clone the response
-          const responseClone = response.clone();
-          
-          // Cache the new response (only for GET requests)
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(request, responseClone).catch(err => {
-              // Silently fail if caching fails (e.g., for unsupported schemes)
-              console.log('Cache put failed:', err.message);
-            });
+      .then(() => {
+        // Force reload all clients to get fresh content
+        return self.clients.matchAll({ type: 'window' }).then(clients => {
+          clients.forEach(client => {
+            console.log('Service Worker: Reloading client:', client.url);
+            client.navigate(client.url);
           });
-        }
-        
-        return response;
-      })
-      .catch(() => {
-        // If network fails, try cache
-        return caches.match(request).then(cachedResponse => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          
-          // If not in cache, return offline page
-          return new Response(
-            '<html><body><h1>Offline</h1><p>Please check your internet connection.</p></body></html>',
-            { 
-              status: 503,
-              headers: { 'Content-Type': 'text/html' }
-            }
-          );
         });
       })
   );
 });
 
-// Message event - force cache refresh
+// Fetch event - ALWAYS fetch fresh, minimal caching
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  
+  try {
+    const url = new URL(request.url);
+    
+    // Skip unsupported schemes (chrome-extension, chrome, about, etc.)
+    if (!url.protocol.startsWith('http')) {
+      return;
+    }
+    
+    // ALWAYS fetch API requests fresh - NEVER cache
+    if (request.url.includes('/api/') || request.url.includes('koyeb.app')) {
+      event.respondWith(
+        fetch(request, { cache: 'no-store' }).catch(() => {
+          return new Response(
+            JSON.stringify({ error: 'Network error, please check your connection' }),
+            { 
+              status: 503,
+              headers: { 'Content-Type': 'application/json' }
+            }
+          );
+        })
+      );
+      return;
+    }
+
+    // Skip caching for POST, PUT, DELETE requests
+    if (request.method !== 'GET') {
+      event.respondWith(fetch(request));
+      return;
+    }
+    
+    // For static assets: ALWAYS fetch fresh (no cache-first strategy)
+    event.respondWith(
+      fetch(request, { 
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      })
+        .then(response => {
+          // DON'T cache - always fetch fresh
+          return response;
+        })
+        .catch(() => {
+          // If network fails, try cache as last resort
+          return caches.match(request).then(cachedResponse => {
+            if (cachedResponse) {
+              console.log('Service Worker: Serving from cache (offline):', request.url);
+              return cachedResponse;
+            }
+            
+            // If not in cache, return offline page
+            return new Response(
+              '<html><body><h1>Offline</h1><p>Please check your internet connection.</p></body></html>',
+              { 
+                status: 503,
+                headers: { 'Content-Type': 'text/html' }
+              }
+            );
+          });
+        })
+    );
+  } catch (error) {
+    console.error('Service Worker fetch error:', error);
+    // Fallback for any errors
+    event.respondWith(fetch(request));
+  }
+});
+
+// Message event - allow manual cache clear from the app
 self.addEventListener('message', (event) => {
-  if (event.data === 'SKIP_WAITING') {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('Service Worker: Received SKIP_WAITING message');
     self.skipWaiting();
   }
   
-  if (event.data === 'CLEAR_CACHE') {
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    console.log('Service Worker: Manual cache clear requested');
     event.waitUntil(
-      caches.keys().then(cacheNames => {
-        return Promise.all(
-          cacheNames
-            .filter(name => name.startsWith('sap-bms-'))
-            .map(name => caches.delete(name))
-        );
+      clearAllCaches().then(() => {
+        console.log('Service Worker: All caches cleared manually');
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage({ success: true });
+        }
       })
     );
   }

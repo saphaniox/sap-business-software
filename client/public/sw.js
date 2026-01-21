@@ -57,6 +57,12 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
+
+  // Skip caching for POST, PUT, DELETE requests (only GET requests can be cached)
+  if (request.method !== 'GET') {
+    event.respondWith(fetch(request));
+    return;
+  }
   
   // For static assets: network first, fallback to cache
   event.respondWith(
@@ -65,7 +71,7 @@ self.addEventListener('fetch', (event) => {
         // Clone the response
         const responseClone = response.clone();
         
-        // Cache the new response
+        // Cache the new response (only for GET requests)
         caches.open(CACHE_NAME).then(cache => {
           cache.put(request, responseClone);
         });

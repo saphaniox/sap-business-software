@@ -111,6 +111,8 @@ export async function login(req, res) {
   const { username, password, companyName } = req.body;
 
   try {
+    console.log('Login attempt:', { username, companyName });
+
     // If company name provided, find company first
     let companyId = null;
     if (companyName) {
@@ -118,8 +120,10 @@ export async function login(req, res) {
         'SELECT * FROM companies WHERE LOWER(company_name) = LOWER(?)',
         [companyName]
       );
+      
+      console.log('Company query result:', Array.isArray(companyResult) ? `Array(${companyResult.length})` : typeof companyResult);
 
-      if (companyResult.length === 0) {
+      if (!Array.isArray(companyResult) || companyResult.length === 0) {
         return res.status(401).json({ 
           error: 'Company not found. Please check the company name.' 
         });
@@ -141,6 +145,8 @@ export async function login(req, res) {
         [username, username]
       );
     }
+    
+    console.log('User query result:', Array.isArray(userResult) ? `Array(${userResult.length})` : typeof userResult);
     
     // Ensure userResult is an array
     if (!Array.isArray(userResult)) {

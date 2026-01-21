@@ -43,13 +43,22 @@ function SuperAdminDashboard({ onNavigate }) {
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
+  const [visitorAnalytics, setVisitorAnalytics] = useState({
+    totalVisitors: 0,
+    totalPageViews: 0,
+    todayVisitors: 0,
+    averageDuration: 0
+  });
+  const [recentVisitors, setRecentVisitors] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
+    fetchVisitorAnalytics();
     
     // Refresh data every 30 seconds for real-time updates
     const intervalId = setInterval(() => {
       fetchDashboardData();
+      fetchVisitorAnalytics();
     }, 30000); // 30 seconds
     
     return () => clearInterval(intervalId);
@@ -179,6 +188,26 @@ function SuperAdminDashboard({ onNavigate }) {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchVisitorAnalytics = async () => {
+    try {
+      const [overviewRes, visitorsRes] = await Promise.all([
+        api.get('/analytics/overview'),
+        api.get('/analytics/visitors?limit=10')
+      ]);
+
+      if (overviewRes.data) {
+        setVisitorAnalytics(overviewRes.data);
+      }
+
+      if (visitorsRes.data?.visitors) {
+        setRecentVisitors(visitorsRes.data.visitors);
+      }
+    } catch (error) {
+      console.error('Error fetching visitor analytics:', error);
+      // Don't show error message - analytics may not be critical
     }
   };
 
@@ -486,6 +515,68 @@ function SuperAdminDashboard({ onNavigate }) {
             />
             <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
               Business administrators
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Visitor Analytics Row - Super Admin Only */}
+      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+        <Col xs={24} sm={12} md={6}>
+          <Card style={{ borderLeft: '4px solid #722ed1' }}>
+            <Statistic
+              title={<span style={{ fontSize: '13px', color: '#666' }}><EyeOutlined /> Total Visitors</span>}
+              value={visitorAnalytics.totalVisitors}
+              valueStyle={{ color: '#722ed1', fontSize: '24px', fontWeight: '600' }}
+              valueRender={(value) => <CountUp end={parseInt(value) || 0} duration={2} />}
+            />
+            <div style={{ marginTop: '8px', fontSize: '12px', color: '#999' }}>
+              {visitorAnalytics.todayVisitors || 0} today
+            </div>
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={12} md={6}>
+          <Card style={{ borderLeft: '4px solid #13c2c2' }}>
+            <Statistic
+              title={<span style={{ fontSize: '13px', color: '#666' }}><FileTextOutlined /> Page Views</span>}
+              value={visitorAnalytics.totalPageViews}
+              valueStyle={{ color: '#13c2c2', fontSize: '24px', fontWeight: '600' }}
+              valueRender={(value) => <CountUp end={parseInt(value) || 0} duration={2} />}
+            />
+            <div style={{ marginTop: '8px', fontSize: '12px', color: '#999' }}>
+              All time
+            </div>
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={12} md={6}>
+          <Card style={{ borderLeft: '4px solid #fa8c16' }}>
+            <Statistic
+              title={<span style={{ fontSize: '13px', color: '#666' }}><ClockCircleOutlined /> Avg Duration</span>}
+              value={Math.floor((visitorAnalytics.averageDuration || 0) / 60)}
+              suffix="min"
+              valueStyle={{ color: '#fa8c16', fontSize: '24px', fontWeight: '600' }}
+            />
+            <div style={{ marginTop: '8px', fontSize: '12px', color: '#999' }}>
+              Per session
+            </div>
+          </Card>
+        </Col>
+        
+        <Col xs={24} sm={12} md={6}>
+          <Card style={{ borderLeft: '4px solid #eb2f96' }}>
+            <Statistic
+              title={<span style={{ fontSize: '13px', color: '#666' }}><UserAddOutlined /> Active Sessions</span>}
+              value={recentVisitors.filter(v => {
+                const sessionTime = new Date(v.start_time);
+                const now = new Date();
+                return (now - sessionTime) < 30 * 60 * 1000; // Last 30 minutes
+              }).length}
+              valueStyle={{ color: '#eb2f96', fontSize: '24px', fontWeight: '600' }}
+            />
+            <div style={{ marginTop: '8px', fontSize: '12px', color: '#999' }}>
+              Last 30 minutes
             </div>
           </Card>
         </Col>

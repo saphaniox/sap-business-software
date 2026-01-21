@@ -122,16 +122,18 @@ export async function createSalesOrder(req, res) {
 
     // Create sales order first (with company context)
     const orderId = uuidv4();
+    const saleNumber = `SALE-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    
     await query(
-      `INSERT INTO sales_orders (id, company_id, customer_name, customer_phone, items, total_amount, currency, exchange_rate, status, served_by_user_id, served_by_username, order_date, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), NOW())`,
-      [orderId, companyId, customer_name, customer_phone, JSON.stringify(orderItems), totalAmount, currency, EXCHANGE_RATE, 'completed', req.user.id, req.user.username]
+      `INSERT INTO sales (id, company_id, customer_name, sale_number, items, subtotal, total, status, created_by, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      [orderId, companyId, customer_name, saleNumber, JSON.stringify(orderItems), totalAmount, totalAmount, 'completed', req.user.id]
     );
 
     // Then update inventory for all items (company-scoped)
     for (const update of productUpdates) {
       await query(
-        'UPDATE products SET quantity_in_stock = quantity_in_stock - ? WHERE id = ? AND company_id = ?',
+        'UPDATE products SET quantity = quantity - ? WHERE id = ? AND company_id = ?',
         [update.quantity, update.product_id, companyId]
       );
 
@@ -146,14 +148,13 @@ export async function createSalesOrder(req, res) {
     
     res.status(201).json({
       id: orderId,
+      sale_number: saleNumber,
       customer_name,
-      customer_phone,
       items: orderItems,
-      total_amount: totalAmount,
-      currency: currency,
-      exchange_rate: EXCHANGE_RATE,
+      total: totalAmount,
+      subtotal: totalAmount,
       status: 'completed',
-      order_date: new Date()
+      created_at: new Date()
     });
   } catch (error) {
     // Log detailed error for debugging
@@ -193,12 +194,12 @@ export async function getSalesOrders(req, res) {
     }
 
     const ordersResult = await query(
-      `SELECT * FROM sales_orders ${sqlWhere} ORDER BY order_date DESC LIMIT ? OFFSET ?`,
+      `SELECT * FROM sales ${sqlWhere} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
       [...params, limit, skip]
     );
     
     const countResult = await query(
-      `SELECT COUNT(*) as total FROM sales_orders ${sqlWhere}`,
+      `SELECT COUNT(*) as total FROM sales ${sqlWhere}`,
       params
     );
     
@@ -225,7 +226,7 @@ export async function getSalesOrder(req, res) {
 
   try {
     const result = await query(
-      'SELECT * FROM sales_orders WHERE id = ? AND company_id = ? LIMIT 1',
+      'SELECT * FROM sales WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
     const order = result[0];
@@ -249,7 +250,7 @@ export async function updateSalesOrder(req, res) {
   try {
     // Get existing order (company-scoped)
     const existingOrderResult = await query(
-      'SELECT * FROM sales_orders WHERE id = ? AND company_id = ? LIMIT 1',
+      'SELECT * FROM sales WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
     const existingOrder = existingOrderResult[0];
@@ -342,7 +343,9 @@ export async function updateSalesOrder(req, res) {
 
       updateFields.push('items = ?');
       updateParams.push(JSON.stringify(orderItems));
-      updateFields.push('total_amount = ?');
+      updateFields.push('total = ?');
+      updateParams.push(totalAmount);
+      updateFields.push('subtotal = ?');
       updateParams.push(totalAmount);
       
       // Track items and total changes
@@ -352,21 +355,24 @@ export async function updateSalesOrder(req, res) {
         new_value: orderItems
       });
       changes.push({
-        field: 'total_amount',
-        old_value: existingOrder.total_amount,
+        field: 'total',
+        old_value: existingOrder.total,
         new_value: totalAmount
       });
     }
 
-    // Add edit history entry if there are changes
+    // Note: edit_history not in schema - consider adding or removing this feature
+    /*
     if (changes.length > 0) {
       editHistory.push({
         edited_at: new Date(),
-        edited_by_user_id: req.user.id,
-        edited_by_username: req.user.username,
+        edited_by: req.user.id,
         changes: changes
       });
       updateFields.push('edit_history = ?');
+      updateParams.push(JSON.stringify(editHistory));
+    }
+    */
       updateParams.push(JSON.stringify(editHistory));
     }
 
@@ -377,14 +383,14 @@ export async function updateSalesOrder(req, res) {
     if (updateFields.length > 0) {
       updateParams.push(id, companyId);
       await query(
-        `UPDATE sales_orders SET ${updateFields.join(', ')} WHERE id = ? AND company_id = ?`,
+        `UPDATE sales SET ${updateFields.join(', ')} WHERE id = ? AND company_id = ?`,
         updateParams
       );
     }
 
     // Fetch updated order
     const updatedResult = await query(
-      'SELECT * FROM sales_orders WHERE id = ? AND company_id = ? LIMIT 1',
+      'SELECT * FROM sales WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
     const updatedOrder = updatedResult[0];
@@ -406,7 +412,7 @@ export async function deleteSalesOrder(req, res) {
   try {
     // Check if order exists (company-scoped)
     const orderResult = await query(
-      'SELECT * FROM sales_orders WHERE id = ? AND company_id = ? LIMIT 1',
+      'SELECT * FROM sales WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
     
@@ -416,7 +422,7 @@ export async function deleteSalesOrder(req, res) {
 
     // Delete the order (company-scoped)
     await query(
-      'DELETE FROM sales_orders WHERE id = ? AND company_id = ?',
+      'DELETE FROM sales WHERE id = ? AND company_id = ?',
       [id, companyId]
     );
 
@@ -434,7 +440,7 @@ export async function downloadSalesOrder(req, res) {
     const companyId = req.companyId;
 
     const salesOrderResult = await query(
-      'SELECT * FROM sales_orders WHERE id = ? AND company_id = ? LIMIT 1',
+      'SELECT * FROM sales WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
     const salesOrder = salesOrderResult[0];
@@ -491,17 +497,13 @@ export async function downloadSalesOrder(req, res) {
     doc.fontSize(10).font('Helvetica');
     doc.text(`Order ID: ${salesOrder.id}`, 50, yPos);
     yPos += 15;
-    doc.text(`Date: ${new Date(salesOrder.order_date).toLocaleDateString()}`, 50, yPos);
+    doc.text(`Date: ${new Date(salesOrder.created_at).toLocaleDateString()}`, 50, yPos);
     yPos += 15;
     doc.text(`Status: ${salesOrder.status}`, 50, yPos);
     yPos += 15;
 
     if (salesOrder.customer_name) {
       doc.text(`Customer: ${salesOrder.customer_name}`, 50, yPos);
-      yPos += 15;
-    }
-    if (salesOrder.customer_phone) {
-      doc.text(`Phone: ${salesOrder.customer_phone}`, 50, yPos);
       yPos += 15;
     }
 
@@ -521,15 +523,15 @@ export async function downloadSalesOrder(req, res) {
       const itemTotal = item.quantity * item.unit_price;
       doc.text(item.product_name, 50, yPos, { width: 240 });
       doc.text(item.quantity.toString(), 300, yPos);
-      doc.text(`${salesOrder.currency || 'UGX'} ${item.unit_price.toFixed(2)}`, 380, yPos);
-      doc.text(`${salesOrder.currency || 'UGX'} ${itemTotal.toFixed(2)}`, 480, yPos);
+      doc.text(`UGX ${item.unit_price.toFixed(2)}`, 380, yPos);
+      doc.text(`UGX ${itemTotal.toFixed(2)}`, 480, yPos);
       yPos += 20;
     });
 
     // Total
     yPos += 10;
     doc.fontSize(12).font('Helvetica-Bold');
-    doc.text(`Total Amount: ${salesOrder.currency || 'UGX'} ${salesOrder.total_amount.toFixed(2)}`, 380, yPos);
+    doc.text(`Total Amount: UGX ${salesOrder.total.toFixed(2)}`, 380, yPos);
 
     // Footer
     yPos += 40;

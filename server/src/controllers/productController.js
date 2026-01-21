@@ -257,17 +257,17 @@ export async function getProductDemand(req, res) {
   try {
     const companyId = req.companyId;
 
-    // Get sales aggregation by product
+    // Get sales aggregation by product from JSONB items
     const salesResult = await query(
       `SELECT 
-         si.product_id,
-         SUM(si.quantity) as total_sold,
-         SUM(si.item_total) as total_revenue,
-         COUNT(DISTINCT si.sale_id) as order_count
-       FROM sales_items si
-       INNER JOIN sales s ON si.sale_id = s.id
+         (item->>'product_id') as product_id,
+         SUM((item->>'quantity')::numeric) as total_sold,
+         SUM((item->>'item_total')::numeric) as total_revenue,
+         COUNT(DISTINCT s.id) as order_count
+       FROM sales s
+       CROSS JOIN LATERAL jsonb_array_elements(s.items) AS item
        WHERE s.company_id = ?
-       GROUP BY si.product_id
+       GROUP BY (item->>'product_id')
        ORDER BY total_sold DESC`,
       [companyId]
     );

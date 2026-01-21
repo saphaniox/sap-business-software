@@ -41,8 +41,8 @@ router.get('/stock-status', authenticate, async (req, res) => {
     const results = await query(
       `SELECT 
         COUNT(*) as total_products,
-        COALESCE(SUM(quantity_in_stock), 0) as total_items,
-        COALESCE(SUM(quantity_in_stock * unit_price), 0) as total_value
+        COALESCE(SUM(quantity), 0) as total_items,
+        COALESCE(SUM(quantity * selling_price), 0) as total_value
       FROM products
       WHERE company_id = ?`,
       [companyId]
@@ -103,18 +103,18 @@ router.get('/low-stock', authenticate, async (req, res) => {
         id,
         name,
         sku,
-        quantity_in_stock as quantity,
-        low_stock_threshold as threshold,
-        unit_price as price,
+        quantity as quantity,
+        reorder_level as threshold,
+        selling_price as price,
         CASE 
-          WHEN quantity_in_stock = 0 THEN 'critical'
-          WHEN quantity_in_stock <= low_stock_threshold * 0.5 THEN 'high'
+          WHEN quantity = 0 THEN 'critical'
+          WHEN quantity <= reorder_level * 0.5 THEN 'high'
           ELSE 'medium'
         END as alert_level
       FROM products
       WHERE company_id = ? 
-        AND quantity_in_stock <= low_stock_threshold
-      ORDER BY quantity_in_stock ASC`,
+        AND quantity <= reorder_level
+      ORDER BY quantity ASC`,
       [companyId]
     );
 
@@ -408,7 +408,7 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
       `SELECT 
         p.id as _id,
         p.name as product_name,
-        p.unit_price as avg_unit_price,
+        p.selling_price as avg_selling_price,
         p.cost_price as avg_cost_price,
         COUNT(DISTINCT s.id) as order_count,
         COALESCE(SUM(s.total_amount), 0) as total_revenue,
@@ -420,7 +420,7 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
       LEFT JOIN sales s ON s.company_id = p.company_id
       WHERE p.company_id = ? 
         AND ${dateCondition}
-      GROUP BY p.id, p.name, p.unit_price, p.cost_price
+      GROUP BY p.id, p.name, p.selling_price, p.cost_price
       ORDER BY total_revenue DESC
       LIMIT 100`,
       [companyId]
@@ -429,7 +429,7 @@ router.get('/profit-analytics', authenticate, async (req, res) => {
     // Calculate derived fields
     const enhancedData = salesData.map(item => {
       const costPrice = item.avg_cost_price || 0;
-      const unitPrice = item.avg_unit_price || 0;
+      const unitPrice = item.avg_selling_price || 0;
       const totalCost = costPrice * item.order_count;
       const totalProfit = item.total_revenue - totalCost;
       const profitMargin = item.total_revenue > 0 ? (totalProfit / item.total_revenue) * 100 : 0;
@@ -642,7 +642,7 @@ router.get('/products/demand', authenticate, async (req, res) => {
       `SELECT 
         p.id,
         p.name,
-        p.quantity_in_stock as current_stock,
+        p.quantity as current_stock,
         COUNT(DISTINCT s.id) as times_sold,
         COALESCE(SUM(s.total_amount), 0) as total_revenue
       FROM products p
@@ -650,7 +650,7 @@ router.get('/products/demand', authenticate, async (req, res) => {
         AND s.status = 'completed'
         AND s.order_date >= NOW() - INTERVAL '30 days'
       WHERE p.company_id = ?
-      GROUP BY p.id, p.name, p.quantity_in_stock
+      GROUP BY p.id, p.name, p.quantity
       ORDER BY times_sold DESC
       LIMIT 20`,
       [companyId]
@@ -664,5 +664,6 @@ router.get('/products/demand', authenticate, async (req, res) => {
 });
 
 export default router;
+
 
 

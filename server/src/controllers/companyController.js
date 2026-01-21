@@ -269,7 +269,7 @@ export async function getCompany(req, res) {
   try {
     const companyId = req.user.company_id;
     
-    const [companies] = await query(
+    const companies = await query(
       'SELECT * FROM companies WHERE id = ?',
       [companyId]
     );

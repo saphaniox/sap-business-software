@@ -14,7 +14,7 @@ export async function createReturn(req, res) {
 
     // Verify order exists
     const orderResult = await query(
-      'SELECT * FROM sales_orders WHERE id = ? AND company_id = ? LIMIT 1',
+      'SELECT * FROM sales WHERE id = ? AND company_id = ? LIMIT 1',
       [order_id, companyId]
     );
     const order = orderResult[0];
@@ -187,8 +187,8 @@ export async function approveReturn(req, res) {
     for (const item of returnItems) {
       // Update product stock
       await query(
-        'UPDATE products SET quantity_in_stock = quantity_in_stock + ?, quantity = quantity + ?, updated_at = ? WHERE id = ? AND company_id = ?',
-        [item.quantity, item.quantity, new Date().toISOString(), item.product_id, companyId]
+        'UPDATE products SET quantity = quantity + ?, updated_at = ? WHERE id = ? AND company_id = ?',
+        [item.quantity, new Date().toISOString(), item.product_id, companyId]
       );
 
       // Create stock transaction record if table exists

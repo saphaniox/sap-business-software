@@ -36,7 +36,7 @@ export async function register(req, res) {
       'SELECT * FROM companies WHERE id = ? AND status = ?',
       [company_id, 'active']
     );
-    const company = companyResult.rows[0];
+    const company = companyResult[0];
 
     if (!company) {
       return res.status(404).json({ 
@@ -51,7 +51,7 @@ export async function register(req, res) {
       [email, company_id]
     );
 
-    if (existingResult.rows.length > 0) {
+    if (existingResult.length > 0) {
       return res.status(400).json({ 
         error: 'This email is already taken in your company. Try a different one? 😊' 
       });
@@ -119,13 +119,13 @@ export async function login(req, res) {
         [companyName]
       );
 
-      if (companyResult.rows.length === 0) {
+      if (companyResult.length === 0) {
         return res.status(401).json({ 
           error: 'Company not found. Please check the company name.' 
         });
       }
 
-      companyId = companyResult.rows[0].id;
+      companyId = companyResult[0].id;
     }
 
     // Find user by name OR email (flexible login)
@@ -141,7 +141,7 @@ export async function login(req, res) {
         [username, username]
       );
     }
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     if (!user) {
       return res.status(401).json({ 
@@ -163,7 +163,7 @@ export async function login(req, res) {
       'SELECT * FROM companies WHERE id = ?',
       [user.company_id]
     );
-    const company = companyResult.rows[0];
+    const company = companyResult[0];
 
     if (!company) {
       return res.status(404).json({

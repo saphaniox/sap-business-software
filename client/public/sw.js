@@ -41,6 +41,12 @@ self.addEventListener('activate', (event) => {
 // Fetch event - network first, fallback to cache
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  const url = new URL(request.url);
+  
+  // Skip unsupported schemes (chrome-extension, chrome, about, etc.)
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
   
   // Skip caching for API requests - always fetch fresh
   if (request.url.includes('/api/')) {
@@ -68,13 +74,19 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(request)
       .then(response => {
-        // Clone the response
-        const responseClone = response.clone();
-        
-        // Cache the new response (only for GET requests)
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(request, responseClone);
-        });
+        // Only cache successful responses from http/https
+        if (response.status === 200 && url.protocol.startsWith('http')) {
+          // Clone the response
+          const responseClone = response.clone();
+          
+          // Cache the new response (only for GET requests)
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, responseClone).catch(err => {
+              // Silently fail if caching fails (e.g., for unsupported schemes)
+              console.log('Cache put failed:', err.message);
+            });
+          });
+        }
         
         return response;
       })

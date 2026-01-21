@@ -5,14 +5,14 @@ import bcrypt from 'bcryptjs';
 
 // Create new user (Business Admin only)
 export async function createUser(req, res) {
-  const { username, email, password, role } = req.body;
+  const { name, email, password, role } = req.body;
   const companyId = req.companyId;
 
   try {
     // Validate required fields
-    if (!username || !email || !password) {
+    if (!name || !email || !password) {
       return res.status(400).json({ 
-        error: 'Username, email, and password are required' 
+        error: 'name, email, and password are required' 
       });
     }
 
@@ -34,13 +34,13 @@ export async function createUser(req, res) {
 
     // Check if user already exists in THIS business
     const existingResult = await query(
-      'SELECT * FROM users WHERE (username = ? OR email = ?) AND company_id = ? LIMIT 1',
-      [username, email, companyId]
+      'SELECT * FROM users WHERE (name = ? OR email = ?) AND company_id = ? LIMIT 1',
+      [name, email, companyId]
     );
 
     if (existingResult.length > 0) {
       return res.status(400).json({ 
-        error: 'Username or email already exists in your business' 
+        error: 'name or email already exists in your business' 
       });
     }
 
@@ -53,16 +53,16 @@ export async function createUser(req, res) {
     const created_at = new Date().toISOString();
     
     await query(
-      `INSERT INTO users (id, company_id, username, email, password_hash, role, is_company_admin, created_at, updated_at)
+      `INSERT INTO users (id, company_id, name, email, password_hash, role, is_company_admin, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, companyId, username, email, password_hash, userRole, false, created_at, created_at]
+      [userId, companyId, name, email, password_hash, userRole, false, created_at, created_at]
     );
 
     res.status(201).json({
       message: 'User created successfully',
       user: {
         id: userId,
-        username,
+        name,
         email,
         role: userRole,
         created_at
@@ -80,7 +80,7 @@ export async function getAllUsers(req, res) {
 
     // Get all users from THIS business
     const result = await query(
-      'SELECT id, username, email, role, permissions, created_at FROM users WHERE company_id = ?',
+      'SELECT id, name, email, role, permissions, created_at FROM users WHERE company_id = ?',
       [companyId]
     );
 
@@ -96,7 +96,7 @@ export async function getUserById(req, res) {
 
   try {
     const result = await query(
-      'SELECT id, username, email, role, permissions, created_at FROM users WHERE id = ? AND company_id = ? LIMIT 1',
+      'SELECT id, name, email, role, permissions, created_at FROM users WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
 
@@ -112,7 +112,7 @@ export async function getUserById(req, res) {
 
 export async function updateUser(req, res) {
   const { id } = req.params;
-  const { username, email } = req.body;
+  const { name, email } = req.body;
   const companyId = req.companyId;
 
   try {
@@ -130,9 +130,9 @@ export async function updateUser(req, res) {
     const updates = [];
     const values = [];
 
-    if (username) {
-      updates.push('username = ?');
-      values.push(username);
+    if (name) {
+      updates.push('name = ?');
+      values.push(name);
     }
     if (email) {
       updates.push('email = ?');
@@ -154,7 +154,7 @@ export async function updateUser(req, res) {
 
     // Get updated user
     const updatedResult = await query(
-      'SELECT id, username, email, role, permissions, created_at FROM users WHERE id = ? AND company_id = ? LIMIT 1',
+      'SELECT id, name, email, role, permissions, created_at FROM users WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
 
@@ -257,7 +257,7 @@ export async function updateUserRole(req, res) {
 
     // Get updated user
     const updatedResult = await query(
-      'SELECT id, username, email, role, created_at FROM users WHERE id = ? AND company_id = ? LIMIT 1',
+      'SELECT id, name, email, role, created_at FROM users WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
 

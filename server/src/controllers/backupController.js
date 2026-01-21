@@ -53,7 +53,7 @@ export async function createBackup(req, res) {
       metadata: {
         company_id: companyId,
         backup_date: new Date().toISOString(),
-        created_by: req.user.username
+        created_by: req.user.name
       },
       data: {
         users,

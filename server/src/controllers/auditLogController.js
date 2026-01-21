@@ -18,13 +18,13 @@ export async function createAuditLog(req, res) {
     const created_at = new Date().toISOString();
 
     await query(
-      `INSERT INTO audit_logs (id, company_id, user_id, username, action, entity_type, entity_id, details, ip_address, user_agent, created_at)
+      `INSERT INTO audit_logs (id, company_id, user_id, user_name, action, entity_type, entity_id, details, ip_address, user_agent, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         logId,
         companyId,
         req.user.id,
-        req.user.username,
+        req.user.user_name,
         action,
         entity_type,
         entity_id,
@@ -234,7 +234,7 @@ export async function getAuditStats(req, res) {
       ),
       // Top active users
       query(
-        `SELECT username, COUNT(*) as action_count FROM audit_logs WHERE company_id = ? GROUP BY username ORDER BY action_count DESC LIMIT 10`,
+        `SELECT user_name, COUNT(*) as action_count FROM audit_logs WHERE company_id = ? GROUP BY user_name ORDER BY action_count DESC LIMIT 10`,
         [companyId]
       ),
       // Recent activity (last 24 hours)

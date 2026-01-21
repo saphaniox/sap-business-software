@@ -113,7 +113,7 @@ export async function registerCompany(req, res) {
     email, 
     phone,
     currency,
-    adminUsername,
+    adminname,
     adminEmail,
     adminPassword
   } = req.body;
@@ -122,9 +122,9 @@ export async function registerCompany(req, res) {
 
   try {
     // Validate required fields
-    if (!companyName || !adminUsername || !adminEmail || !adminPassword) {
+    if (!companyName || !adminname || !adminEmail || !adminPassword) {
       return res.status(400).json({ 
-        error: 'Company name, admin username, email, and password are required' 
+        error: 'Company name, admin name, email, and password are required' 
       });
     }
 
@@ -147,15 +147,15 @@ export async function registerCompany(req, res) {
       });
     }
 
-    // Check if admin email or username exists
+    // Check if admin email or name exists
     const [existingUsers] = await query(
-      'SELECT * FROM users WHERE username = ? OR email = ?',
-      [adminUsername, adminEmail]
+      'SELECT * FROM users WHERE name = ? OR email = ?',
+      [adminname, adminEmail]
     );
 
     if (existingUsers.length > 0) {
       return res.status(400).json({ 
-        error: 'This username or email is already registered.' 
+        error: 'This name or email is already registered.' 
       });
     }
 
@@ -203,12 +203,12 @@ export async function registerCompany(req, res) {
     const userId = uuidv4();
     await query(
       `INSERT INTO users 
-      (id, company_id, username, email, password_hash, role, is_company_admin, created_at, updated_at)
+      (id, company_id, name, email, password_hash, role, is_company_admin, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
         companyId,
-        adminUsername,
+        adminname,
         adminEmail,
         hashedPassword,
         'admin',
@@ -229,7 +229,7 @@ export async function registerCompany(req, res) {
       { 
         id: userId,
         company_id: companyId,
-        username: adminUsername,
+        name: adminname,
         role: 'admin',
         is_company_admin: true
       },
@@ -250,7 +250,7 @@ export async function registerCompany(req, res) {
       },
       user: {
         id: userId,
-        username: adminUsername,
+        name: adminname,
         email: adminEmail,
         role: 'admin'
       },

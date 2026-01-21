@@ -19,10 +19,10 @@ export async function authenticate(req, res, next) {
     
     // Fetch fresh user data from database to get current role
     const result = await query(
-      'SELECT id, username, role, company_id, status FROM users WHERE id = $1',
+      'SELECT id, name, email, role, company_id, status FROM users WHERE id = ?',
       [decoded.id]
     );
-    const user = result.rows[0];
+    const user = result[0];
     
     if (!user) {
       return res.status(401).json({ error: 'User not found' });

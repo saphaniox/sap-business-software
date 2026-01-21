@@ -53,9 +53,9 @@ export async function createProduct(req, res) {
     const productId = uuidv4();
     await query(
       `INSERT INTO products 
-       (id, company_id, user_id, name, sku, description, unit_price, cost_price, profit, profit_margin, quantity_in_stock, low_stock_threshold, created_at, updated_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-      [productId, companyId, userId, name, sku, description || '', sellingPrice, costPrice, profit, profitMargin, productQuantity, stockThreshold]
+       (id, company_id, created_by, name, sku, description, selling_price, cost_price, quantity, reorder_level, created_at, updated_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      [productId, companyId, userId, name, sku, description || '', sellingPrice, costPrice, productQuantity, stockThreshold]
     );
 
     res.status(201).json({
@@ -120,17 +120,23 @@ export async function getAllProducts(req, res) {
     const total = countResult[0].total;
 
     // Map database fields to API response format
-    const mappedProducts = products.map(p => ({
-      ...p,
-      _id: p.id,
-      price: p.unit_price || 0,
-      cost_price: p.cost_price || 0,
-      profit: p.profit || 0,
-      profit_margin: p.profit_margin || 0,
-      quantity: p.quantity_in_stock || 0,
-      low_stock_threshold: p.low_stock_threshold || 10,
-      is_low_stock: (p.quantity_in_stock || 0) <= (p.low_stock_threshold || 10)
-    }));
+    const mappedProducts = products.map(p => {
+      const profit = (p.selling_price || 0) - (p.cost_price || 0);
+      const profitMargin = p.selling_price > 0 ? ((profit / p.selling_price) * 100) : 0;
+      return {
+        ...p,
+        _id: p.id,
+        price: p.selling_price || 0,
+        unit_price: p.selling_price || 0,
+        cost_price: p.cost_price || 0,
+        profit: profit,
+        profit_margin: profitMargin,
+        quantity: p.quantity || 0,
+        quantity_in_stock: p.quantity || 0,
+        low_stock_threshold: p.reorder_level || 10,
+        is_low_stock: (p.quantity || 0) <= (p.reorder_level || 10)
+      };
+    });
 
     res.json({
       data: mappedProducts,
@@ -160,8 +166,9 @@ export async function updateProduct(req, res) {
       'name = ?',
       'sku = ?',
       'description = ?',
-      'unit_price = ?',
-      'quantity_in_stock = ?',
+      'selling_price = ?',
+      'quantity = ?',
+      'updated_by = ?',
       'updated_at = NOW()'
     ];
     let updateValues = [
@@ -169,20 +176,19 @@ export async function updateProduct(req, res) {
       sku,
       description || '',
       sellingPrice,
-      parseInt(quantity) || 0
+      parseInt(quantity) || 0,
+      req.user.id
     ];
 
     if (low_stock_threshold !== undefined) {
-      updateParts.push('low_stock_threshold = ?');
+      updateParts.push('reorder_level = ?');
       updateValues.push(parseInt(low_stock_threshold));
     }
 
-    // Calculate profit if cost_price is provided
+    // Update cost_price if provided
     if (costPrice !== undefined) {
-      const profit = sellingPrice - costPrice;
-      const profitMargin = sellingPrice > 0 ? ((profit / sellingPrice) * 100) : 0;
-      updateParts.push('cost_price = ?', 'profit = ?', 'profit_margin = ?');
-      updateValues.push(costPrice, profit, profitMargin);
+      updateParts.push('cost_price = ?');
+      updateValues.push(costPrice);
     }
 
     // Add WHERE conditions
@@ -206,11 +212,18 @@ export async function updateProduct(req, res) {
     }
 
     // Map database fields to API response format
+    const profit = (product.selling_price || 0) - (product.cost_price || 0);
+    const profitMargin = product.selling_price > 0 ? ((profit / product.selling_price) * 100) : 0;
     res.json({
       ...product,
       _id: product.id,
-      price: product.unit_price || 0,
-      quantity: product.quantity_in_stock || 0
+      price: product.selling_price || 0,
+      unit_price: product.selling_price || 0,
+      quantity: product.quantity || 0,
+      quantity_in_stock: product.quantity || 0,
+      low_stock_threshold: product.reorder_level || 10,
+      profit: profit,
+      profit_margin: profitMargin
     });
   } catch (error) {
     console.error('Update product error:', error);
@@ -316,8 +329,8 @@ export async function getProductDemand(req, res) {
         _id: product.id,
         name: product.name,
         sku: product.sku,
-        price: product.unit_price || 0,
-        current_stock: product.quantity_in_stock || 0,
+        price: product.selling_price || 0,
+        current_stock: product.quantity || 0,
         total_sold: salesData.total_sold,
         total_revenue: salesData.total_revenue,
         order_count: salesData.order_count,

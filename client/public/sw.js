@@ -1,5 +1,5 @@
 // Service Worker for SAP Business Management Software
-const CACHE_VERSION = 'v1-' + Date.now();
+const CACHE_VERSION = 'v2-2026-01-21';
 const CACHE_NAME = `sap-bms-${CACHE_VERSION}`;
 
 // Assets to cache immediately

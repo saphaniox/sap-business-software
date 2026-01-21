@@ -81,7 +81,7 @@ function CompanyRegister() {
       setAuth({...user, company}, token)
       
       message.success(`🎉 ${company.company_name} registered successfully! Welcome aboard!`)
-      navigate('/dashboard', { replace: true })
+      navigate('/dashboard')
     } catch (error) {
       message.error(
         error.response?.data?.error || 

@@ -63,7 +63,7 @@ function Login() {
           });
           
           message.success(`Welcome back, ${response.data.admin.name}!`)
-          navigate('/dashboard', { replace: true })
+          navigate('/dashboard')
         }
       } else {
         // Regular user/admin login (supports both username and email)
@@ -74,7 +74,7 @@ function Login() {
           company: response.data.company
         }, response.data.token)
         message.success(`Welcome back to ${response.data.company.name}!`)
-        navigate('/dashboard', { replace: true })
+        navigate('/dashboard')
       }
     } catch (error) {
       console.error('Login error:', error)

@@ -40,7 +40,7 @@ function Register() {
         company: response.data.company
       }, response.data.token)
       message.success('🎉 Account created successfully! Welcome aboard!')
-      navigate('/dashboard', { replace: true })
+      navigate('/dashboard')
     } catch (error) {
       message.error(error.response?.data?.error || 'Unable to create account. Please try again.')
     } finally {

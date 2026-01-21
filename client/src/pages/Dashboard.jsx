@@ -60,10 +60,10 @@ function Dashboard() {
   }, [currentPage])
 
   useEffect(() => {
-    // Verify authentication
+    // Verify authentication only on mount
     if (!user) {
       console.warn('No user found in Dashboard, redirecting to login');
-      navigate('/login', { replace: true })
+      navigate('/login')
       return;
     }
 
@@ -72,7 +72,7 @@ function Dashboard() {
     if (!token) {
       console.warn('No token found in Dashboard, redirecting to login');
       logout();
-      navigate('/login', { replace: true })
+      navigate('/login')
       return;
     }
 
@@ -97,8 +97,10 @@ function Dashboard() {
   }, [user, navigate, logout])
 
   const handleLogout = () => {
+    // Clear current page from localStorage on logout
+    localStorage.removeItem('currentPage')
     logout()
-    navigate('/login')
+    navigate('/login', { replace: true })
   }
 
   const menuItems = [

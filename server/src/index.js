@@ -249,28 +249,50 @@ async function initAndStart() {
   // Routes
   // Super Admin routes (independent from company auth)
   app.use('/api/superadmin', superAdminRoutes);
+  app.use('/superadmin', superAdminRoutes); // Fallback
   app.use('/api/superadmin', companyManagementRoutes);
+  app.use('/superadmin', companyManagementRoutes); // Fallback
   app.use('/api/email', emailRoutes); // Email management for super admins
+  app.use('/email', emailRoutes); // Fallback
   app.use('/api/announcements', announcementRoutes); // Announcements system
+  app.use('/announcements', announcementRoutes); // Fallback
   app.use('/api/support-tickets', supportTicketRoutes); // Support ticket system
+  app.use('/support-tickets', supportTicketRoutes); // Fallback
   app.use('/api/platform-settings', platformSettingsRoutes); // Platform settings
+  app.use('/platform-settings', platformSettingsRoutes); // Fallback
   
   // Regular company routes
   app.use('/api/auth', authRoutes);
+  // FALLBACK: Support old frontend URLs without /api prefix (for deployment transition)
+  app.use('/auth', authRoutes);
   app.use('/api/company', companyRoutes);
+  app.use('/company', companyRoutes);
   app.use('/api/products', productsRoutes);
+  app.use('/products', productsRoutes);
   app.use('/api/customers', customersRoutes);
+  app.use('/customers', customersRoutes);
   app.use('/api/sales', salesRoutes);
+  app.use('/sales', salesRoutes);
   app.use('/api/invoices', invoicesRoutes);
+  app.use('/invoices', invoicesRoutes);
   app.use('/api/reports', reportsRoutes);
+  app.use('/reports', reportsRoutes);
   app.use('/api/users', usersRoutes);
+  app.use('/users', usersRoutes);
   app.use('/api/returns', returnsRoutes);
+  app.use('/returns', returnsRoutes);
   app.use('/api/backup', backupRoutes);
+  app.use('/backup', backupRoutes);
   app.use('/api/expenses', expensesRoutes);
+  app.use('/expenses', expensesRoutes);
   app.use('/api/notifications', notificationRoutes);
+  app.use('/notifications', notificationRoutes);
   app.use('/api/ai', aiAnalyticsRoutes); // AI-powered analytics and insights
+  app.use('/ai', aiAnalyticsRoutes);
   app.use('/api/documents', documentProcessingRoutes); // Document processing and OCR
+  app.use('/documents', documentProcessingRoutes);
   app.use('/api/analytics', analyticsRoutes); // Performance tracking and visitor analytics
+  app.use('/analytics', analyticsRoutes);
 
   // Error handling
   app.use(errorHandler);

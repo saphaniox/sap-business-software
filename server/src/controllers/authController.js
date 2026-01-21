@@ -128,24 +128,24 @@ export async function login(req, res) {
       companyId = companyResult.rows[0].id;
     }
 
-    // Find user by email (username field is used for email input)
+    // Find user by name OR email (flexible login)
     let userResult;
     if (companyId) {
       userResult = await query(
-        'SELECT * FROM users WHERE email = ? AND company_id = ?',
-        [username, companyId]
+        'SELECT * FROM users WHERE (name = ? OR email = ?) AND company_id = ?',
+        [username, username, companyId]
       );
     } else {
       userResult = await query(
-        'SELECT * FROM users WHERE email = ?',
-        [username]
+        'SELECT * FROM users WHERE name = ? OR email = ?',
+        [username, username]
       );
     }
     const user = userResult.rows[0];
 
     if (!user) {
       return res.status(401).json({ 
-        error: 'Email not found. Please check your credentials and try again.' 
+        error: 'Username or email not found. Please check your credentials and try again.' 
       });
     }
 

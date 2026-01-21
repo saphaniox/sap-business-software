@@ -114,13 +114,15 @@ function Dashboard() {
       key: 'analytics',
       icon: <LineChartOutlined />,
       label: 'Analytics',
-      onClick: () => setCurrentPage('analytics')
+      onClick: () => setCurrentPage('analytics'),
+      tenantOnly: true  // Only for company users, not super admin
     },
     {
       key: 'ai-analytics',
       icon: <ThunderboltOutlined />,
       label: 'AI Insights',
-      onClick: () => setCurrentPage('ai-analytics')
+      onClick: () => setCurrentPage('ai-analytics'),
+      tenantOnly: true  // Only for company users, not super admin
     },
     {
       key: 'products',
@@ -245,9 +247,11 @@ function Dashboard() {
 
   // Filter menu items based on user role
   const filteredMenuItems = menuItems.filter(item => {
-    // Super admin gets only management items and debug
+    // Super admin gets only management items and dashboard (no tenant-specific items)
     if (user?.role === 'superadmin' || user?.isSuperAdmin) {
-      return item.superAdminOnly || item.key === 'dashboard'
+      // Hide tenant-only items from super admins
+      if (item.tenantOnly) return false
+      return item.superAdminOnly || item.key === 'dashboard' || item.key === 'help'
     }
     
     // Only show super admin-only items to super admin
@@ -311,13 +315,13 @@ function Dashboard() {
       return <SuperAdminDashboard onNavigate={setCurrentPage} />
     }
 
-    // Super admins trying to access tenant-specific pages should be redirected
+    // Super admins cannot access company-specific pages (they don't have a company_id)
     if (user?.isSuperAdmin || user?.role === 'superadmin') {
-      const tenantPages = ['analytics', 'ai-analytics', 'products', 'customers', 'sales', 'invoices', 'returns', 'expenses', 'fraud-detection'];
-      if (tenantPages.includes(currentPage)) {
-        message.warning('Super admins cannot access company-specific pages. Use Platform Statistics instead.');
-        setCurrentPage('dashboard');
-        return <SuperAdminDashboard onNavigate={setCurrentPage} />
+      const blockedTenantPages = ['analytics', 'products', 'customers', 'sales', 'invoices', 'returns', 'expenses'];
+      if (blockedTenantPages.includes(currentPage)) {
+        message.warning('Super admins cannot access company-specific pages. Use Visitor Analytics instead.');
+        setCurrentPage('visitor-analytics');
+        return <VisitorAnalytics />
       }
     }
 

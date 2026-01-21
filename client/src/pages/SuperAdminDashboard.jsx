@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { motion } from 'framer-motion';
 import CountUp from 'react-countup';
-import api from '../services/api';
+import api, { superAdminAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import CompanyProfileModal from '../components/CompanyProfileModal';
 import CompanyLogoDisplay from '../components/CompanyLogoDisplay';
@@ -68,10 +68,10 @@ function SuperAdminDashboard({ onNavigate }) {
     setLoading(true);
     try {
       const [companiesRes, usersRes, pendingRes, statsRes] = await Promise.all([
-        api.get('/superadmin/companies'),
-        api.get('/superadmin/all-users'),
-        api.get('/superadmin/pending-companies'),
-        api.get('/superadmin/statistics')
+        superAdminAPI.getCompanies(),
+        superAdminAPI.getAllUsers(),
+        superAdminAPI.getPendingCompanies(),
+        superAdminAPI.getPlatformStatistics()
       ]);
 
       if (companiesRes.data.success) {
@@ -194,8 +194,8 @@ function SuperAdminDashboard({ onNavigate }) {
   const fetchVisitorAnalytics = async () => {
     try {
       const [overviewRes, visitorsRes] = await Promise.all([
-        api.get('/analytics/overview'),
-        api.get('/analytics/visitors?limit=10')
+        api.get('/api/analytics/overview'),
+        api.get('/api/analytics/visitors?limit=10')
       ]);
 
       if (overviewRes.data) {

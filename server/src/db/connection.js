@@ -116,8 +116,8 @@ export async function closeDatabase() {
 }
 
 /**
- * Helper: Convert MongoDB-style filter to SQL WHERE clause
- * @param {Object} filter - MongoDB-style filter object
+ * Helper: Convert filter object to SQL WHERE clause
+ * @param {Object} filter - Filter object
  * @returns {Object} { where, params }
  */
 export function buildWhereClause(filter) {
@@ -144,8 +144,8 @@ export function buildWhereClause(filter) {
 }
 
 /**
- * Helper: Convert MongoDB-style update to SQL SET clause
- * @param {Object} update - MongoDB-style update object
+ * Helper: Convert update object to SQL SET clause
+ * @param {Object} update - Update object
  * @returns {Object} { set, params }
  */
 export function buildSetClause(update) {
@@ -165,7 +165,7 @@ export function buildSetClause(update) {
 }
 
 /**
- * Helper: Generate UUID for IDs (replaces MongoDB ObjectId)
+ * Helper: Generate UUID for record IDs
  */
 export function generateId() {
   return crypto.randomUUID();

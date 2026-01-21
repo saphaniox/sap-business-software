@@ -7,18 +7,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "build": "echo 'Backend built for AWS Amplify'",
-    "seed": "node src/db/seed.js",
-    "seed-production": "node scripts/seed-production-data.js",
-    "seed-superadmin": "node scripts/seed-superadmin.js",
-    "seed-two-businesses": "node scripts/seed-two-businesses.js",
-    "seed-diverse": "node scripts/seed-diverse-businesses.js",
-    "test-connection": "node scripts/test-connection.js",
-    "migrate": "node scripts/migrate-to-mysql.js",
-    "deploy": "serverless deploy",
-    "deploy:dev": "serverless deploy --stage dev",
-    "deploy:prod": "serverless deploy --stage production",
-    "offline": "serverless offline"
+    "build": "echo 'Backend built for production'",
+    "seed-superadmin": "node scripts/seed-superadmin.js"
   },
   "dependencies": {
     "archiver": "^7.0.1",

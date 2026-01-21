@@ -6,7 +6,7 @@ export async function createSalesOrder(req, res) {
   const { customer_name, customer_phone, items, currency = 'UGX' } = req.body;
   const companyId = req.companyId;
   
-  // Use MongoDB session for transaction safety
+  // Use PostgreSQL transaction for data consistency
   let session = null;
 
   try {

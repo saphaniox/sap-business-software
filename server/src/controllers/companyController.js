@@ -2,12 +2,6 @@ import { query } from '../db/connection.js';
 import { v4 as uuidv4 } from 'uuid';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { 
-  convertProductPrices, 
-  convertSalesPrices, 
-  convertExpensesPrices, 
-  convertInvoicesPrices 
-} from '../utils/currencyConverter.js';
 
 /**
  * Get industry-specific features and categories

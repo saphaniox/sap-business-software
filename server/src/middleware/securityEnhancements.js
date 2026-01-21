@@ -152,7 +152,7 @@ export function validatePasswordStrength(password) {
 export function validateObjectId(id) {
   if (!id) return false;
   
-  // MongoDB ObjectId is 24 hex characters
+  // UUID is 36 characters with hyphens
   const objectIdRegex = /^[0-9a-fA-F]{24}$/;
   return objectIdRegex.test(id);
 }

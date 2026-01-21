@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Production API from Koyeb (Never Sleeps)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sap-business-management-software.koyeb.app'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sap-business-management-software.koyeb.app/api'
 
 console.log('API Base URL:', API_BASE_URL)
 
@@ -141,24 +141,24 @@ api.interceptors.response.use(
 )
 
 export const authAPI = {
-  register: (data) => api.post('/api/auth/register', data),
-  login: (data) => api.post('/api/auth/login', data),
+  register: (data) => api.post('/auth/register', data),
+  login: (data) => api.post('/auth/login', data),
 }
 
 export const superAdminAPI = {
-  login: (data) => api.post('/api/superadmin/login', data),
-  getMe: () => api.get('/api/superadmin/me'),
-  logout: () => api.post('/api/superadmin/logout'),
-  getCompanies: () => api.get('/api/superadmin/companies'),
-  getPendingCompanies: () => api.get('/api/superadmin/pending-companies'),
-  getAllUsers: () => api.get('/api/superadmin/all-users'),
-  approveCompany: (companyId) => api.put(`/api/superadmin/companies/${companyId}/approve`),
-  rejectCompany: (companyId, reason) => api.put(`/api/superadmin/companies/${companyId}/reject`, { reason }),
-  blockCompany: (companyId, reason) => api.put(`/api/superadmin/companies/${companyId}/block`, { reason }),
-  deleteCompany: (companyId) => api.delete(`/api/superadmin/companies/${companyId}`),
-  getCompanyProfile: (companyId) => api.get(`/api/superadmin/companies/${companyId}/profile`),
-  getPlatformStatistics: () => api.get('/api/superadmin/statistics'),
-  sendWelcomeEmail: (companyId) => api.post(`/api/superadmin/companies/${companyId}/welcome-email`),
+  login: (data) => api.post('/superadmin/login', data),
+  getMe: () => api.get('/superadmin/me'),
+  logout: () => api.post('/superadmin/logout'),
+  getCompanies: () => api.get('/superadmin/companies'),
+  getPendingCompanies: () => api.get('/superadmin/pending-companies'),
+  getAllUsers: () => api.get('/superadmin/all-users'),
+  approveCompany: (companyId) => api.put(`/superadmin/companies/${companyId}/approve`),
+  rejectCompany: (companyId, reason) => api.put(`/superadmin/companies/${companyId}/reject`, { reason }),
+  blockCompany: (companyId, reason) => api.put(`/superadmin/companies/${companyId}/block`, { reason }),
+  deleteCompany: (companyId) => api.delete(`/superadmin/companies/${companyId}`),
+  getCompanyProfile: (companyId) => api.get(`/superadmin/companies/${companyId}/profile`),
+  getPlatformStatistics: () => api.get('/superadmin/statistics'),
+  sendWelcomeEmail: (companyId) => api.post(`/superadmin/companies/${companyId}/welcome-email`),
 }
 
 export const companyAPI = {

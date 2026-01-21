@@ -309,6 +309,16 @@ function Dashboard() {
       return <SuperAdminDashboard onNavigate={setCurrentPage} />
     }
 
+    // Super admins trying to access tenant-specific pages should be redirected
+    if (user?.isSuperAdmin || user?.role === 'superadmin') {
+      const tenantPages = ['analytics', 'ai-analytics', 'products', 'customers', 'sales', 'invoices', 'returns', 'expenses', 'fraud-detection'];
+      if (tenantPages.includes(currentPage)) {
+        message.warning('Super admins cannot access company-specific pages. Use Platform Statistics instead.');
+        setCurrentPage('dashboard');
+        return <SuperAdminDashboard onNavigate={setCurrentPage} />
+      }
+    }
+
     switch(currentPage) {
       case 'analytics':
         return <Analytics />

@@ -30,6 +30,7 @@ import {
   ArrowLeftOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
+import { useAuthStore } from '../store/authStore';
 import '../styles/global.css';
 
 const { Header, Content } = Layout;
@@ -41,6 +42,7 @@ const API_BASE_URL = baseUrl.replace(/\/api$/, '');
 
 const VisitorAnalytics = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState(null);
   const [visitors, setVisitors] = useState([]);
@@ -51,19 +53,19 @@ const VisitorAnalytics = () => {
 
   // Check Super Admin authentication
   useEffect(() => {
-    const superAdminAuth = localStorage.getItem('superAdminAuth');
-    if (!superAdminAuth) {
-      message.error('Unauthorized access. Please login as Super Admin.');
-      navigate('/');
+    // Check if user is super admin
+    if (!user || (!user.isSuperAdmin && user.role !== 'superadmin')) {
+      message.error('Unauthorized access. Super admin only.');
+      navigate('/dashboard');
       return;
     }
     fetchAllData();
-  }, [navigate]);
+  }, [navigate, user]);
 
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('superAdminToken');
+      const token = localStorage.getItem('token');
       const config = {
         headers: { Authorization: `Bearer ${token}` }
       };
@@ -90,7 +92,7 @@ const VisitorAnalytics = () => {
 
   const loadMoreVisitors = async (page) => {
     try {
-      const token = localStorage.getItem('superAdminToken');
+      const token = localStorage.getItem('token');
       const response = await axios.get(
         `${API_BASE_URL}/api/analytics/visitors?page=${page}&limit=50`,
         { headers: { Authorization: `Bearer ${token}` } }

@@ -12,7 +12,7 @@ export async function createCustomer(req, res) {
       'SELECT * FROM customers WHERE phone = ? AND company_id = ?',
       [phone, companyId]
     );
-    if (existingResult.rows.length > 0) {
+    if (existingResult.length > 0) {
       return res.status(400).json({ error: `A customer with phone number "${phone}" already exists. Please use a different phone number or update the existing customer.` });
     }
 
@@ -69,8 +69,8 @@ export async function getAllCustomers(req, res) {
       query(countQuery, countParams)
     ]);
 
-    const customers = customersResult.rows.map(c => ({ ...c, _id: c.id }));
-    const total = countResult.rows[0].total;
+    const customers = customersResult.map(c => ({ ...c, _id: c.id }));
+    const total = countResult[0].total;
 
     // Return both formats for compatibility
     if (req.query.page || req.query.limit) {
@@ -101,7 +101,7 @@ export async function getCustomer(req, res) {
       'SELECT * FROM customers WHERE id = ? AND company_id = ?',
       [id, companyId]
     );
-    const customer = result.rows[0];
+    const customer = result[0];
 
     if (!customer) {
       return res.status(404).json({ error: 'Customer not found' });
@@ -131,7 +131,7 @@ export async function updateCustomer(req, res) {
       'SELECT * FROM customers WHERE id = ? AND company_id = ?',
       [id, companyId]
     );
-    const customer = result.rows[0];
+    const customer = result[0];
     
     if (!customer) {
       return res.status(404).json({ error: 'Customer not found' });
@@ -154,7 +154,7 @@ export async function getCustomerPurchaseHistory(req, res) {
       'SELECT * FROM customers WHERE id = ? AND company_id = ?',
       [id, companyId]
     );
-    const customer = customerResult.rows[0];
+    const customer = customerResult[0];
     if (!customer) {
       return res.status(404).json({ error: 'Customer not found' });
     }
@@ -166,7 +166,7 @@ export async function getCustomerPurchaseHistory(req, res) {
        ORDER BY sale_date DESC`,
       [companyId, customer.phone, customer.name]
     );
-    const orders = ordersResult.rows.map(o => {
+    const orders = ordersResult.map(o => {
       // Parse items if stored as JSON string
       if (typeof o.items === 'string') {
         try { o.items = JSON.parse(o.items); } catch (e) { o.items = []; }
@@ -181,7 +181,7 @@ export async function getCustomerPurchaseHistory(req, res) {
        ORDER BY created_at DESC`,
       [companyId, customer.phone, customer.name]
     );
-    const invoices = invoicesResult.rows.map(i => ({ ...i, _id: i.id }));
+    const invoices = invoicesResult.map(i => ({ ...i, _id: i.id }));
 
     // Calculate statistics
     const totalOrders = orders.length;

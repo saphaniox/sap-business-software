@@ -56,17 +56,17 @@ export async function createBackup(req, res) {
         created_by: req.user.username
       },
       data: {
-        users: users.rows,
-        products: products.rows,
-        customers: customers.rows,
-        sales: sales.rows,
-        invoices: invoices.rows,
-        expenses: expenses.rows,
-        returns: returns.rows,
-        notifications: notifications.rows,
-        announcements: announcements.rows,
-        support_tickets: supportTickets.rows,
-        audit_logs: auditLogs.rows
+        users,
+        products,
+        customers,
+        sales,
+        invoices,
+        expenses,
+        returns,
+        notifications,
+        announcements,
+        support_tickets: supportTickets,
+        audit_logs: auditLogs
       }
     };
 

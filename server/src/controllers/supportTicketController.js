@@ -72,12 +72,12 @@ export async function getTickets(req, res) {
     ]);
 
     res.json({
-      tickets: ticketsResult.rows,
+      tickets: ticketsResult,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: countResult.rows[0].count,
-        pages: Math.ceil(countResult.rows[0].count / parseInt(limit))
+        total: countResult[0].count,
+        pages: Math.ceil(countResult[0].count / parseInt(limit))
       }
     });
   } catch (error) {
@@ -99,11 +99,11 @@ export async function getTicket(req, res) {
       [id, companyId]
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({ error: 'Ticket not found' });
     }
 
-    res.json(result.rows[0]);
+    res.json(result[0]);
   } catch (error) {
     console.error('Get ticket error:', error);
     res.status(500).json({ error: error.message });
@@ -205,10 +205,10 @@ export async function getTicketStats(req, res) {
     ]);
 
     res.json({
-      total: totalResult.rows[0].count,
-      open: openResult.rows[0].count,
-      closed: closedResult.rows[0].count,
-      pending: pendingResult.rows[0].count
+      total: totalResult[0].count,
+      open: openResult[0].count,
+      closed: closedResult[0].count,
+      pending: pendingResult[0].count
     });
   } catch (error) {
     console.error('Get ticket stats error:', error);
@@ -235,7 +235,7 @@ export async function addTicketMessage(req, res) {
       [ticketId, companyId]
     );
 
-    if (ticketResult.rows.length === 0) {
+    if (ticketResult.length === 0) {
       return res.status(404).json({ error: 'Support ticket not found' });
     }
 

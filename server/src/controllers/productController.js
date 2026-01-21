@@ -43,7 +43,7 @@ export async function createProduct(req, res) {
       'SELECT * FROM products WHERE sku = ? AND company_id = ?',
       [sku, companyId]
     );
-    if (existingResult.rows.length > 0) {
+    if (existingResult.length > 0) {
       return res.status(400).json({ error: `This SKU "${sku}" is already in use. Please use a unique SKU for each product.` });
     }
 
@@ -116,8 +116,8 @@ export async function getAllProducts(req, res) {
       query(countQuery, countParams)
     ]);
 
-    const products = productsResult.rows;
-    const total = countResult.rows[0].total;
+    const products = productsResult;
+    const total = countResult[0].total;
 
     // Map database fields to API response format
     const mappedProducts = products.map(p => ({
@@ -200,7 +200,7 @@ export async function updateProduct(req, res) {
       [id, companyId]
     );
     
-    const product = productResult.rows[0];
+    const product = productResult[0];
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
@@ -264,7 +264,7 @@ export async function getProductDemand(req, res) {
       'SELECT * FROM products WHERE company_id = ?',
       [companyId]
     );
-    const allProducts = productsResult.rows;
+    const allProducts = productsResult;
     
     // Create a set of valid product IDs
     const validProductIds = new Set(allProducts.map(p => p.id));
@@ -273,7 +273,7 @@ export async function getProductDemand(req, res) {
     const salesMap = new Map();
     let validSalesCount = 0;
     
-    salesResult.rows.forEach(sale => {
+    salesResult.forEach(sale => {
       const productId = sale.product_id;
       // Only count sales for products that still exist
       if (validProductIds.has(productId)) {

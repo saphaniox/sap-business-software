@@ -17,7 +17,7 @@ export async function createReturn(req, res) {
       'SELECT * FROM sales_orders WHERE id = ? AND company_id = ? LIMIT 1',
       [order_id, companyId]
     );
-    const order = orderResult.rows[0];
+    const order = orderResult[0];
     
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
@@ -104,10 +104,10 @@ export async function getReturns(req, res) {
       `SELECT COUNT(*) as total FROM returns ${sqlWhere}`,
       params
     );
-    const total = countResult.rows[0].total;
+    const total = countResult[0].total;
 
     res.json({
-      data: returnsResult.rows,
+      data: returnsResult,
       pagination: {
         page,
         limit,
@@ -132,7 +132,7 @@ export async function getReturn(req, res) {
       'SELECT * FROM returns WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
-    const returnRecord = result.rows[0];
+    const returnRecord = result[0];
 
     if (!returnRecord) {
       return res.status(404).json({ error: 'Return not found' });
@@ -157,7 +157,7 @@ export async function approveReturn(req, res) {
       'SELECT * FROM returns WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
-    const returnRecord = returnResult.rows[0];
+    const returnRecord = returnResult[0];
     
     if (!returnRecord) {
       return res.status(404).json({ error: 'Return not found' });
@@ -175,7 +175,7 @@ export async function approveReturn(req, res) {
       'SELECT * FROM sales WHERE id = ? AND company_id = ? LIMIT 1',
       [returnRecord.order_id, companyId]
     );
-    const salesOrder = salesOrderResult.rows[0];
+    const salesOrder = salesOrderResult[0];
     
     if (!salesOrder) {
       return res.status(404).json({ error: 'Original sales order not found' });
@@ -275,7 +275,7 @@ export async function approveReturn(req, res) {
 
     res.json({
       message: 'Return approved, inventory restored, and financials updated',
-      return: updatedReturnResult.rows[0],
+      return: updatedReturnResult[0],
       refund_amount: returnRecord.total_refund_amount,
       updated_order_total: newSubtotal
     });
@@ -298,7 +298,7 @@ export async function rejectReturn(req, res) {
       'SELECT * FROM returns WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
-    const returnRecord = returnResult.rows[0];
+    const returnRecord = returnResult[0];
     
     if (!returnRecord) {
       return res.status(404).json({ error: 'Return not found' });
@@ -322,7 +322,7 @@ export async function rejectReturn(req, res) {
 
     res.json({
       message: 'Return rejected',
-      return: updatedReturnResult.rows[0]
+      return: updatedReturnResult[0]
     });
   } catch (error) {
     console.error('Reject return error:', error);
@@ -343,7 +343,7 @@ export async function deleteReturn(req, res) {
       [id, companyId]
     );
     
-    if (returnResult.rows.length === 0) {
+    if (returnResult.length === 0) {
       return res.status(404).json({ error: 'Return not found' });
     }
 

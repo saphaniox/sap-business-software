@@ -34,7 +34,7 @@ export async function createSalesOrder(req, res) {
         [customer_phone, companyId]
       );
       
-      if (existingCustomer.rows.length === 0) {
+      if (existingCustomer.length === 0) {
         // Auto-register new customer
         const customerId = uuidv4();
         await query(
@@ -69,7 +69,7 @@ export async function createSalesOrder(req, res) {
         'SELECT * FROM products WHERE id = ? AND company_id = ? LIMIT 1',
         [item.product_id, companyId]
       );
-      const product = productResult.rows[0];
+      const product = productResult[0];
 
       if (!product) {
         return res.status(404).json({ error: `Product not found. It may have been deleted. Please refresh and try again.` });
@@ -202,10 +202,10 @@ export async function getSalesOrders(req, res) {
       params
     );
     
-    const total = countResult.rows[0].total;
+    const total = countResult[0].total;
 
     res.json({
-      data: ordersResult.rows,
+      data: ordersResult,
       pagination: {
         page,
         limit,
@@ -228,7 +228,7 @@ export async function getSalesOrder(req, res) {
       'SELECT * FROM sales_orders WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
-    const order = result.rows[0];
+    const order = result[0];
 
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
@@ -252,7 +252,7 @@ export async function updateSalesOrder(req, res) {
       'SELECT * FROM sales_orders WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
-    const existingOrder = existingOrderResult.rows[0];
+    const existingOrder = existingOrderResult[0];
 
     if (!existingOrder) {
       return res.status(404).json({ error: 'Order not found' });
@@ -307,7 +307,7 @@ export async function updateSalesOrder(req, res) {
           'SELECT * FROM products WHERE id = ? AND company_id = ? LIMIT 1',
           [item.product_id, companyId]
         );
-        const product = productResult.rows[0];
+        const product = productResult[0];
 
         if (!product) {
           return res.status(404).json({ error: `Product not found: ${item.product_id}` });
@@ -387,7 +387,7 @@ export async function updateSalesOrder(req, res) {
       'SELECT * FROM sales_orders WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
-    const updatedOrder = updatedResult.rows[0];
+    const updatedOrder = updatedResult[0];
 
     res.json({
       message: 'Sales order updated successfully',
@@ -410,7 +410,7 @@ export async function deleteSalesOrder(req, res) {
       [id, companyId]
     );
     
-    if (orderResult.rows.length === 0) {
+    if (orderResult.length === 0) {
       return res.status(404).json({ error: 'Sales order not found' });
     }
 
@@ -437,7 +437,7 @@ export async function downloadSalesOrder(req, res) {
       'SELECT * FROM sales_orders WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
-    const salesOrder = salesOrderResult.rows[0];
+    const salesOrder = salesOrderResult[0];
 
     if (!salesOrder) {
       return res.status(404).json({ error: 'Sales order not found' });
@@ -448,7 +448,7 @@ export async function downloadSalesOrder(req, res) {
       'SELECT * FROM companies WHERE id = ? LIMIT 1',
       [companyId]
     );
-    const company = companyResult.rows[0];
+    const company = companyResult[0];
     const companyName = company?.company_name || 'Business';
     const companyAddress = company?.address || '';
     const companyPhone = company?.phone || '';

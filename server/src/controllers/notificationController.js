@@ -70,9 +70,9 @@ export async function getNotifications(req, res) {
 
     res.json({
       success: true,
-      notifications: notificationsResult.rows,
-      unread_count: unreadCountResult.rows[0].count,
-      total: notificationsResult.rows.length
+      notifications: notificationsResult,
+      unread_count: unreadCountResult[0].count,
+      total: notificationsResult.length
     });
   } catch (error) {
     console.error('Get notifications error:', error);
@@ -213,7 +213,7 @@ export async function getUnreadCount(req, res) {
 
     res.json({
       success: true,
-      count: result.rows[0].count
+      count: result[0].count
     });
   } catch (error) {
     console.error('Get unread count error:', error);

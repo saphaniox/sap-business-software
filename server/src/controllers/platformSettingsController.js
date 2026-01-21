@@ -17,7 +17,7 @@ export async function getSettings(req, res) {
 
     // Group settings by category
     const grouped = {};
-    result.rows.forEach(setting => {
+    result.forEach(setting => {
       if (!grouped[setting.category]) {
         grouped[setting.category] = {};
       }
@@ -47,11 +47,11 @@ export async function getSetting(req, res) {
       [category, key]
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({ error: 'Setting not found' });
     }
 
-    const setting = result.rows[0];
+    const setting = result[0];
     setting.value = typeof setting.value === 'string' ? JSON.parse(setting.value) : setting.value;
 
     res.json(setting);
@@ -77,7 +77,7 @@ export async function updateSetting(req, res) {
 
     const valueStr = JSON.stringify(value);
 
-    if (checkResult.rows.length > 0) {
+    if (checkResult.length > 0) {
       // Update existing
       await query(
         'UPDATE platform_settings SET value = ?, description = ?, data_type = ?, updated_at = ? WHERE category = ? AND setting_key = ?',
@@ -136,7 +136,7 @@ export async function getSettingsByCategory(req, res) {
     );
 
     const settings = {};
-    result.rows.forEach(setting => {
+    result.forEach(setting => {
       settings[setting.setting_key] = {
         value: typeof setting.value === 'string' ? JSON.parse(setting.value) : setting.value,
         description: setting.description,

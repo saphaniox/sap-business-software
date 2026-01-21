@@ -36,7 +36,7 @@ export const createExpense = async (req, res) => {
 
     res.status(201).json({
       message: 'Expense recorded successfully',
-      data: result.rows[0]
+      data: result[0]
     })
   } catch (error) {
     console.error('Error creating expense:', error)
@@ -84,10 +84,10 @@ export const getAllExpenses = async (req, res) => {
       params
     );
     
-    const total = countResult.rows[0].total
+    const total = countResult[0].total
 
     res.json({
-      data: expensesResult.rows,
+      data: expensesResult,
       pagination: {
         page,
         limit,
@@ -137,9 +137,9 @@ export const getExpensesSummary = async (req, res) => {
     );
 
     res.json({
-      totalExpenses: summaryResult.rows[0]?.totalExpenses || 0,
-      totalCount: summaryResult.rows[0]?.count || 0,
-      byCategory: byCategoryResult.rows.map(item => ({
+      totalExpenses: summaryResult[0]?.totalExpenses || 0,
+      totalCount: summaryResult[0]?.count || 0,
+      byCategory: byCategoryResult.map(item => ({
         category: item.category || 'Uncategorized',
         total: item.total,
         count: item.count
@@ -213,7 +213,7 @@ export const updateExpense = async (req, res) => {
 
     res.json({
       message: 'Expense updated successfully',
-      data: updatedResult.rows[0]
+      data: updatedResult[0]
     })
   } catch (error) {
     console.error('Error updating expense:', error)

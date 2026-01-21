@@ -99,7 +99,7 @@ export async function getAuditLogs(req, res) {
     ]);
 
     // Parse details JSON
-    const logs = logsResult.rows.map(log => ({
+    const logs = logsResult.map(log => ({
       ...log,
       details: typeof log.details === 'string' ? JSON.parse(log.details) : log.details
     }));
@@ -109,8 +109,8 @@ export async function getAuditLogs(req, res) {
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: countResult.rows[0].count,
-        pages: Math.ceil(countResult.rows[0].count / parseInt(limit))
+        total: countResult[0].count,
+        pages: Math.ceil(countResult[0].count / parseInt(limit))
       }
     });
   } catch (error) {
@@ -132,11 +132,11 @@ export async function getAuditLog(req, res) {
       [id, companyId]
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({ error: 'Audit log not found' });
     }
 
-    const log = result.rows[0];
+    const log = result[0];
     log.details = typeof log.details === 'string' ? JSON.parse(log.details) : log.details;
 
     res.json(log);
@@ -194,7 +194,7 @@ export async function getTargetAuditLogs(req, res) {
       )
     ]);
 
-    const logs = logsResult.rows.map(log => ({
+    const logs = logsResult.map(log => ({
       ...log,
       details: typeof log.details === 'string' ? JSON.parse(log.details) : log.details
     }));
@@ -204,8 +204,8 @@ export async function getTargetAuditLogs(req, res) {
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: countResult.rows[0].count,
-        pages: Math.ceil(countResult.rows[0].count / parseInt(limit))
+        total: countResult[0].count,
+        pages: Math.ceil(countResult[0].count / parseInt(limit))
       }
     });
   } catch (error) {
@@ -245,10 +245,10 @@ export async function getAuditStats(req, res) {
     ]);
 
     res.json({
-      action_distribution: actionStats.rows,
-      entity_distribution: entityStats.rows,
-      top_users: userActivity.rows,
-      recent_activity_24h: recentActivity.rows[0].count
+      action_distribution: actionStats,
+      entity_distribution: entityStats,
+      top_users: userActivity,
+      recent_activity_24h: recentActivity[0].count
     });
   } catch (error) {
     console.error('Get audit stats error:', error);

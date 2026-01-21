@@ -58,12 +58,12 @@ export async function getAnnouncements(req, res) {
     ]);
 
     res.json({
-      announcements: announcementsResult.rows,
+      announcements: announcementsResult,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: countResult.rows[0].count,
-        pages: Math.ceil(countResult.rows[0].count / parseInt(limit))
+        total: countResult[0].count,
+        pages: Math.ceil(countResult[0].count / parseInt(limit))
       }
     });
   } catch (error) {
@@ -85,11 +85,11 @@ export async function getAnnouncement(req, res) {
       [id, companyId]
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({ error: 'Announcement not found' });
     }
 
-    res.json(result.rows[0]);
+    res.json(result[0]);
   } catch (error) {
     console.error('Get announcement error:', error);
     res.status(500).json({ error: error.message });
@@ -191,12 +191,12 @@ export async function getCompanyAnnouncements(req, res) {
     ]);
 
     res.json({
-      announcements: announcementsResult.rows,
+      announcements: announcementsResult,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: countResult.rows[0].count,
-        pages: Math.ceil(countResult.rows[0].count / parseInt(limit))
+        total: countResult[0].count,
+        pages: Math.ceil(countResult[0].count / parseInt(limit))
       }
     });
   } catch (error) {

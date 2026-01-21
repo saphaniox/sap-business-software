@@ -30,7 +30,7 @@ export async function generateInvoice(req, res) {
         'SELECT * FROM sales WHERE id = ? AND company_id = ? LIMIT 1',
         [sales_order_id, companyId]
       );
-      const order = orderResult.rows[0];
+      const order = orderResult[0];
 
       if (!order) {
         return res.status(404).json({ error: 'Sales order not found' });
@@ -69,7 +69,7 @@ export async function generateInvoice(req, res) {
           [customer_phone, companyId]
         );
         
-        if (existingCustomerResult.rows.length === 0) {
+        if (existingCustomerResult.length === 0) {
           // Auto-register new customer
           const customerId = uuidv4();
           const created_at = new Date().toISOString();
@@ -91,7 +91,7 @@ export async function generateInvoice(req, res) {
           'SELECT * FROM products WHERE id = ? AND company_id = ? LIMIT 1',
           [item.product_id, companyId]
         );
-        const product = productResult.rows[0];
+        const product = productResult[0];
 
         if (!product) {
           return res.status(404).json({ 
@@ -149,7 +149,7 @@ export async function generateInvoice(req, res) {
       'SELECT COUNT(*) as count FROM invoices WHERE company_id = ?',
       [companyId]
     );
-    const invoiceCount = countResult.rows[0].count;
+    const invoiceCount = countResult[0].count;
     const invoiceNumber = `INV-${Date.now().toString().slice(-6)}-${invoiceCount + 1}`;
 
     // Create invoice
@@ -213,12 +213,12 @@ export async function getInvoices(req, res) {
     ]);
 
     // Parse JSON items
-    const invoices = invoicesResult.rows.map(inv => ({
+    const invoices = invoicesResult.map(inv => ({
       ...inv,
       items: typeof inv.items === 'string' ? JSON.parse(inv.items) : inv.items
     }));
 
-    const total = countResult.rows[0].count;
+    const total = countResult[0].count;
 
     res.json({
       data: invoices,
@@ -245,11 +245,11 @@ export async function getInvoice(req, res) {
       [id, companyId]
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({ error: 'Invoice not found' });
     }
 
-    const invoice = result.rows[0];
+    const invoice = result[0];
     // Parse JSON items
     invoice.items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
 
@@ -273,7 +273,7 @@ export async function updateInvoice(req, res) {
       [id, companyId]
     );
 
-    if (existingResult.rows.length === 0) {
+    if (existingResult.length === 0) {
       return res.status(404).json({ error: 'Invoice not found' });
     }
 
@@ -308,7 +308,7 @@ export async function updateInvoice(req, res) {
           'SELECT * FROM products WHERE id = ? AND company_id = ? LIMIT 1',
           [item.product_id, companyId]
         );
-        const product = productResult.rows[0];
+        const product = productResult[0];
 
         if (!product) {
           return res.status(404).json({ error: `Product not found: ${item.product_id}` });
@@ -353,7 +353,7 @@ export async function updateInvoice(req, res) {
       'SELECT * FROM invoices WHERE id = ? AND company_id = ? LIMIT 1',
       [id, companyId]
     );
-    const updatedInvoice = updatedResult.rows[0];
+    const updatedInvoice = updatedResult[0];
     updatedInvoice.items = typeof updatedInvoice.items === 'string' ? JSON.parse(updatedInvoice.items) : updatedInvoice.items;
 
     res.json({
@@ -378,7 +378,7 @@ export async function deleteInvoice(req, res) {
       [id, companyId]
     );
     
-    if (checkResult.rows.length === 0) {
+    if (checkResult.length === 0) {
       return res.status(404).json({ error: 'Invoice not found' });
     }
 
@@ -406,11 +406,11 @@ export async function downloadInvoice(req, res) {
       [id, companyId]
     );
 
-    if (invoiceResult.rows.length === 0) {
+    if (invoiceResult.length === 0) {
       return res.status(404).json({ error: 'Invoice not found' });
     }
 
-    const invoice = invoiceResult.rows[0];
+    const invoice = invoiceResult[0];
     // Parse JSON items
     invoice.items = typeof invoice.items === 'string' ? JSON.parse(invoice.items) : invoice.items;
 
@@ -419,7 +419,7 @@ export async function downloadInvoice(req, res) {
       'SELECT * FROM companies WHERE id = ? LIMIT 1',
       [companyId]
     );
-    const company = companyResult.rows[0];
+    const company = companyResult[0];
     const companyName = company?.company_name || 'Business';
     const companyAddress = company?.address || '';
     const companyPhone = company?.phone || '';

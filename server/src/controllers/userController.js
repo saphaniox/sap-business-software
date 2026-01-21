@@ -38,7 +38,7 @@ export async function createUser(req, res) {
       [username, email, companyId]
     );
 
-    if (existingResult.rows.length > 0) {
+    if (existingResult.length > 0) {
       return res.status(400).json({ 
         error: 'Username or email already exists in your business' 
       });
@@ -84,7 +84,7 @@ export async function getAllUsers(req, res) {
       [companyId]
     );
 
-    res.json(result.rows);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -100,11 +100,11 @@ export async function getUserById(req, res) {
       [id, companyId]
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json(result.rows[0]);
+    res.json(result[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -122,7 +122,7 @@ export async function updateUser(req, res) {
       [id, companyId]
     );
 
-    if (checkResult.rows.length === 0) {
+    if (checkResult.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
@@ -160,7 +160,7 @@ export async function updateUser(req, res) {
 
     res.json({
       message: 'User updated successfully',
-      user: updatedResult.rows[0]
+      user: updatedResult[0]
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -178,11 +178,11 @@ export async function deleteUser(req, res) {
       [id, companyId]
     );
 
-    if (userResult.rows.length === 0) {
+    if (userResult.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     if (user.is_company_admin) {
       return res.status(403).json({ 
@@ -222,11 +222,11 @@ export async function updateUserRole(req, res) {
       [id, companyId]
     );
 
-    if (userResult.rows.length === 0) {
+    if (userResult.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     // Protect company admin from role changes
     if (user.is_company_admin && req.user.role !== 'superadmin') {
@@ -242,7 +242,7 @@ export async function updateUserRole(req, res) {
         [companyId, 'admin']
       );
       
-      if (adminCountResult.rows[0].count <= 1) {
+      if (adminCountResult[0].count <= 1) {
         return res.status(400).json({ 
           error: 'Cannot demote the last admin user' 
         });
@@ -263,7 +263,7 @@ export async function updateUserRole(req, res) {
 
     res.json({
       message: 'User role updated successfully',
-      user: updatedResult.rows[0]
+      user: updatedResult[0]
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -289,7 +289,7 @@ export async function updateUserPermissions(req, res) {
       [id, companyId]
     );
 
-    if (userResult.rows.length === 0) {
+    if (userResult.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
@@ -320,11 +320,11 @@ export async function uploadProfilePicture(req, res) {
       [id, companyId]
     );
 
-    if (userResult.rows.length === 0) {
+    if (userResult.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     // Delete old profile picture if exists
     if (user.profile_picture) {
@@ -358,11 +358,11 @@ export async function deleteProfilePicture(req, res) {
       [id, companyId]
     );
 
-    if (userResult.rows.length === 0) {
+    if (userResult.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     if (user.profile_picture) {
       await deleteOldProfilePicture(user.profile_picture);
@@ -390,11 +390,11 @@ export async function getProfilePicture(req, res) {
       [id, companyId]
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({ profile_picture: result.rows[0].profile_picture });
+    res.json({ profile_picture: result[0].profile_picture });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -418,7 +418,7 @@ export async function adminChangePassword(req, res) {
       [id, companyId]
     );
 
-    if (userResult.rows.length === 0) {
+    if (userResult.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
@@ -462,11 +462,11 @@ export async function changeOwnPassword(req, res) {
       [userId, companyId]
     );
 
-    if (userResult.rows.length === 0) {
+    if (userResult.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const user = userResult.rows[0];
+    const user = userResult[0];
 
     // Verify current password
     const isValidPassword = await bcrypt.compare(currentPassword, user.password_hash);

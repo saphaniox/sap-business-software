@@ -45,15 +45,15 @@ export async function register(req, res) {
     }
 
     // SECURITY: Check if user already exists within THIS business only
-    // Users can have same username/email in different businesses (isolated)
+    // Users can have same email in different businesses (isolated)
     const existingResult = await query(
-      'SELECT * FROM users WHERE (username = ? OR email = ?) AND company_id = ?',
-      [username, email, company_id]
+      'SELECT * FROM users WHERE email = ? AND company_id = ?',
+      [email, company_id]
     );
 
     if (existingResult.rows.length > 0) {
       return res.status(400).json({ 
-        error: 'This username or email is already taken in your company. Try a different one? 😊' 
+        error: 'This email is already taken in your company. Try a different one? 😊' 
       });
     }
 
@@ -61,15 +61,15 @@ export async function register(req, res) {
     const userId = uuidv4();
     
     await query(
-      `INSERT INTO users (id, company_id, username, email, password, role, is_company_admin, status, created_at, updated_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-      [userId, company_id, username, email, hashedPassword, 'sales', false, 'active']
+      `INSERT INTO users (id, company_id, name, email, password, role, status, created_at, updated_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      [userId, company_id, username, email, hashedPassword, 'sales', 'active']
     );
 
     const newUser = {
       id: userId,
       company_id,
-      username,
+      name: username,
       email,
       role: 'sales'
     };
@@ -128,24 +128,24 @@ export async function login(req, res) {
       companyId = companyResult.rows[0].id;
     }
 
-    // Find user by username OR email
+    // Find user by email (username field is used for email input)
     let userResult;
     if (companyId) {
       userResult = await query(
-        'SELECT * FROM users WHERE (username = ? OR email = ?) AND company_id = ?',
-        [username, username, companyId]
+        'SELECT * FROM users WHERE email = ? AND company_id = ?',
+        [username, companyId]
       );
     } else {
       userResult = await query(
-        'SELECT * FROM users WHERE username = ? OR email = ?',
-        [username, username]
+        'SELECT * FROM users WHERE email = ?',
+        [username]
       );
     }
     const user = userResult.rows[0];
 
     if (!user) {
       return res.status(401).json({ 
-        error: 'Username or email not found. Please check your credentials and try again.' 
+        error: 'Email not found. Please check your credentials and try again.' 
       });
     }
 
